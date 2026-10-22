@@ -1,393 +1,127 @@
 import React, { useState } from 'react';
-import { 
-  ChevronDown, 
-  ShoppingBag, 
-  Sprout, 
-  ShieldAlert, 
-  Stethoscope, 
-  Truck, 
-  Newspaper, 
-  PhoneCall, 
-  PlusCircle, 
-  Menu, 
-  X,
-  MapPin,
-  Sparkles,
-  Info
-} from 'lucide-react';
+import { Bell, Menu, PlusCircle, ShoppingBag, X } from 'lucide-react';
 
-export default function FarmiqNavbar({
-  activeTab,
-  setActiveTab,
-  onOpenSellModal,
-  cartCount = 0,
-  onOpenCart,
-}) {
-  const [productsOpen, setProductsOpen] = useState(false);
-  const [farmsOpen, setFarmsOpen] = useState(false);
+const navigation = [
+  { label: 'Home', tab: 'home' },
+  { label: 'Contact', tab: 'contact' },
+  { label: 'Market', tab: 'market' },
+  { label: 'Community', tab: 'feed' },
+  { label: 'About', tab: 'about' },
+];
+
+export default function FarmiqNavbar({ activeTab, setActiveTab, onOpenSellModal, onOpenCart, cartCount = 0 }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
 
   const handleNavClick = (tab) => {
     setActiveTab(tab);
-    setProductsOpen(false);
-    setFarmsOpen(false);
     setMobileMenuOpen(false);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const navLinkClass = (tab) =>
+    `cursor-pointer rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+      activeTab === tab
+        ? 'font-bold'
+        : ''
+      }`;
+
   return (
-    <header className="sticky top-0 z-50 bg-[#0a3721]/95 backdrop-blur-md text-white border-b border-emerald-900/40 shadow-sm transition-all duration-200">
-      <div className="max-w-[1400px] mx-auto px-4 sm:px-8 md:px-12 py-3.5 flex items-center justify-between gap-4">
-        
-        {/* ================= 1. BRAND LOGO ================= */}
-        <div
+    <header className="sticky top-0 z-50 border-b border-white/10 bg-[#17291e] text-white shadow-[0_4px_18px_rgba(0,0,0,0.16)]">
+      <div className="mx-auto flex max-w-[1400px] items-center justify-between gap-3 px-4 py-2 sm:px-8 md:px-12 xl:grid xl:grid-cols-[1fr_auto_1fr]">
+        <button
+          type="button"
           onClick={() => handleNavClick('home')}
-          className="flex items-center gap-3 cursor-pointer group select-none flex-shrink-0"
+          className="group flex shrink-0 cursor-pointer items-center gap-2 text-left xl:justify-self-start"
+          aria-label="Farm Africa IsokoLink Rwanda home"
         >
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-400 to-emerald-700 flex items-center justify-center text-slate-950 font-black shadow-md shadow-emerald-950/40 group-hover:scale-105 transition-transform duration-200">
-            <Sprout size={22} className="text-[#072618]" />
-          </div>
-          <div className="flex flex-col leading-tight">
-            <div className="flex items-center gap-1.5">
-              <span className="font-extrabold text-xl sm:text-2xl tracking-tight text-white font-sans">
-                FARMIQ
-              </span>
-              <span className="inline-block px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 uppercase tracking-wider">
-                Rwanda
-              </span>
-            </div>
-            <span className="text-[11px] tracking-wide text-emerald-300/80 font-medium">
-              IsokoLink Digital Agriculture
-            </span>
-          </div>
-        </div>
+          <span className="flex h-8 w-7 items-center justify-center border-r border-white/20 pr-1.5 text-[#f4f1df] transition-transform group-hover:scale-105" aria-hidden="true">
+            <svg viewBox="0 0 36 48" className="h-7 w-6" fill="none">
+              <path d="M8 43V7m10 36V4m10 39V8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+              <path d="M8 13 3 8m5 11-5-5m5 11-5-5m5 11-5-5m5 11-5-5M18 10l-5-5m5 11-5-5m5 11-5-5m5 11-5-5m5 11-5-5m15-21-5 5m5 6-5 5m5 6-5 5m5 6-5 5" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round" />
+              <path d="m18 4 5 5m-5 1 5 5m-5 1 5 5m-5 1 5 5m-5 1 5 5m-5 1 5 5" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round" />
+            </svg>
+          </span>
+          <span className="flex flex-col leading-none">
+            <span className="whitespace-nowrap text-[15px] font-extrabold tracking-[0.035em] text-[#f4f1df] sm:text-[17px]">FARM AFRICA</span>
+            <span className="mt-1 text-[8px] font-semibold uppercase tracking-[0.17em] text-[#b7c49e] sm:text-[9px]">IsokoLink Rwanda</span>
+          </span>
+        </button>
 
-        {/* ================= 2. DESKTOP NAVIGATION MENU ================= */}
-        <nav className="hidden lg:flex items-center gap-7 text-sm font-medium text-emerald-100/90 font-sans">
-          
-          {/* Home */}
-          <button
-            onClick={() => handleNavClick('home')}
-            className={`transition-colors flex items-center gap-1.5 py-1 ${
-              activeTab === 'home' 
-                ? 'text-emerald-300 font-bold border-b-2 border-emerald-400' 
-                : 'hover:text-white'
-            }`}
-          >
-            <span>Home</span>
-          </button>
-
-          {/* About Us */}
-          <button
-            onClick={() => handleNavClick('about')}
-            className={`transition-colors py-1 ${
-              activeTab === 'about' 
-                ? 'text-emerald-300 font-bold border-b-2 border-emerald-400' 
-                : 'hover:text-white'
-            }`}
-          >
-            <span>About Us</span>
-          </button>
-
-          {/* Products & Services Dropdown */}
-          <div
-            className="relative"
-            onMouseEnter={() => setProductsOpen(true)}
-            onMouseLeave={() => setProductsOpen(false)}
-          >
-            <button
-              onClick={() => handleNavClick('market')}
-              className={`flex items-center gap-1.5 py-1 transition-colors ${
-                ['market', 'defense', 'doctor', 'agencies'].includes(activeTab)
-                  ? 'text-emerald-300 font-bold border-b-2 border-emerald-400'
-                  : 'hover:text-white'
-              }`}
-            >
-              <span>Products & Services</span>
-              <ChevronDown 
-                size={14} 
-                className={`transition-transform duration-200 ${productsOpen ? 'rotate-180 text-emerald-300' : 'opacity-70'}`} 
-              />
+        <nav aria-label="Main navigation" className="hidden items-center justify-self-center gap-1 xl:flex">
+          {navigation.map(({ label, tab }) => (
+            <button key={tab} type="button" aria-current={activeTab === tab ? 'page' : undefined} onClick={() => handleNavClick(tab)} className={`${navLinkClass(tab)} relative px-3.5 py-2.5 ${activeTab === tab ? 'text-[#d5e0bd] after:absolute after:bottom-0 after:left-3.5 after:right-3.5 after:h-0.5 after:rounded-full after:bg-[#9eb65b]' : 'text-white/80 hover:bg-white/[0.04] hover:text-white'}`}>
+              {label}
             </button>
-
-            {/* Hierarchical Submenu Dropdown */}
-            {productsOpen && (
-              <div className="absolute top-full -left-6 w-80 pt-2 animate-in fade-in slide-in-from-top-1 duration-150">
-                <div className="bg-[#072618] rounded-2xl p-2.5 shadow-2xl border border-emerald-800/60 text-xs space-y-1 backdrop-blur-xl">
-                  <div className="px-3 py-1.5 text-[10px] uppercase tracking-wider text-emerald-400 font-bold border-b border-emerald-900/60">
-                    Agricultural Ecosystem
-                  </div>
-
-                  <div
-                    onClick={() => handleNavClick('market')}
-                    className="flex items-start gap-3 p-2.5 rounded-xl hover:bg-emerald-900/60 cursor-pointer transition-colors"
-                  >
-                    <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-400 mt-0.5">
-                      <Sprout size={18} />
-                    </div>
-                    <div>
-                      <div className="font-bold text-white text-sm">Fresh Harvest Market</div>
-                      <div className="text-[11px] text-emerald-300/70">Potatoes, Maize, Avocados, Coffee directly from co-ops</div>
-                    </div>
-                  </div>
-
-                  <div
-                    onClick={() => handleNavClick('defense')}
-                    className="flex items-start gap-3 p-2.5 rounded-xl hover:bg-emerald-900/60 cursor-pointer transition-colors"
-                  >
-                    <div className="p-2 rounded-lg bg-amber-500/10 text-amber-400 mt-0.5">
-                      <ShieldAlert size={18} />
-                    </div>
-                    <div>
-                      <div className="font-bold text-amber-200 text-sm">Disease Prevention Hub</div>
-                      <div className="text-[11px] text-emerald-300/70">RAB-certified defense kits, anti-blight & sanitation supplies</div>
-                    </div>
-                  </div>
-
-                  <div
-                    onClick={() => handleNavClick('doctor')}
-                    className="flex items-start gap-3 p-2.5 rounded-xl hover:bg-emerald-900/60 cursor-pointer transition-colors"
-                  >
-                    <div className="p-2 rounded-lg bg-purple-500/10 text-purple-400 mt-0.5">
-                      <Stethoscope size={18} />
-                    </div>
-                    <div>
-                      <div className="font-bold text-purple-200 text-sm">AI Crop Doctor</div>
-                      <div className="text-[11px] text-emerald-300/70">Instant photo pathology & agronomic remedies</div>
-                    </div>
-                  </div>
-
-                  <div
-                    onClick={() => handleNavClick('agencies')}
-                    className="flex items-start gap-3 p-2.5 rounded-xl hover:bg-emerald-900/60 cursor-pointer transition-colors"
-                  >
-                    <div className="p-2 rounded-lg bg-cyan-500/10 text-cyan-400 mt-0.5">
-                      <Truck size={18} />
-                    </div>
-                    <div>
-                      <div className="font-bold text-cyan-200 text-sm">Field Spraying & Testing</div>
-                      <div className="text-[11px] text-emerald-300/70">Book certified PPE spraying teams and soil tests</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Our Farms / Growing Zones */}
-          <div
-            className="relative"
-            onMouseEnter={() => setFarmsOpen(true)}
-            onMouseLeave={() => setFarmsOpen(false)}
-          >
-            <button
-              onClick={() => handleNavClick('market')}
-              className="flex items-center gap-1.5 py-1 hover:text-white transition-colors"
-            >
-              <span>Our Farms</span>
-              <ChevronDown 
-                size={14} 
-                className={`transition-transform duration-200 ${farmsOpen ? 'rotate-180 text-emerald-300' : 'opacity-70'}`} 
-              />
-            </button>
-
-            {farmsOpen && (
-              <div className="absolute top-full -left-6 w-64 pt-2 animate-in fade-in slide-in-from-top-1 duration-150">
-                <div className="bg-[#072618] rounded-2xl p-2.5 shadow-2xl border border-emerald-800/60 text-xs space-y-1 backdrop-blur-xl">
-                  <div className="px-3 py-1 text-[10px] uppercase tracking-wider text-emerald-400 font-bold border-b border-emerald-900/60">
-                    Rwandan Growing Zones
-                  </div>
-                  {[
-                    { district: 'Musanze & Gakenke', crop: 'Irish Potatoes (Kinigi)' },
-                    { district: 'Nyagatare & Gatsibo', crop: 'Dry Grain Maize' },
-                    { district: 'Huye & Nyamagabe', crop: 'Highland Arabica Coffee' },
-                    { district: 'Rubavu & Rutsiro', crop: 'Bananas & Plantains' },
-                    { district: 'Bugesera & Rwamagana', crop: 'Hass Avocados & Vegetables' }
-                  ].map((zone, idx) => (
-                    <div
-                      key={idx}
-                      onClick={() => handleNavClick('market')}
-                      className="p-2 rounded-lg hover:bg-emerald-900/60 cursor-pointer text-slate-200 flex items-start gap-2 transition-colors"
-                    >
-                      <MapPin size={14} className="text-emerald-400 mt-0.5 flex-shrink-0" />
-                      <div>
-                        <div className="font-semibold text-white">{zone.district}</div>
-                        <div className="text-[10px] text-emerald-300/70">{zone.crop}</div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Community Farming Feed */}
-          <button
-            onClick={() => handleNavClick('feed')}
-            className={`transition-colors flex items-center gap-1.5 py-1 ${
-              activeTab === 'feed' 
-                ? 'text-emerald-300 font-bold border-b-2 border-emerald-400' 
-                : 'hover:text-white'
-            }`}
-          >
-            <Newspaper size={14} className="text-emerald-300" />
-            <span>Community Feed</span>
-          </button>
-
-          {/* Contact */}
-          <button
-            onClick={() => handleNavClick('contact')}
-            className={`transition-colors py-1 ${
-              activeTab === 'contact' 
-                ? 'text-emerald-300 font-bold border-b-2 border-emerald-400' 
-                : 'hover:text-white'
-            }`}
-          >
-            <span>Contact</span>
-          </button>
+          ))}
         </nav>
 
-        {/* ================= 3. RIGHT ACTIONS ================= */}
-        <div className="flex items-center gap-2.5 sm:gap-3">
-          
-          {/* Sell Produce (Farmer CTA) */}
-          {onOpenSellModal && (
-            <button
-              onClick={onOpenSellModal}
-              className="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full border border-emerald-400/40 hover:bg-emerald-800/40 text-emerald-200 hover:text-white text-xs font-semibold transition-colors"
-              title="Post a harvest listing for wholesale buyers"
-            >
-              <PlusCircle size={15} className="text-emerald-400" />
-              <span>Sell Produce</span>
-            </button>
-          )}
-
-          {/* Get Fresh Produce (Main Buyer CTA) */}
+        <div className="relative ml-auto flex shrink-0 items-center gap-2 sm:gap-3 xl:ml-0 xl:justify-self-end">
           <button
+            type="button"
+            onClick={onOpenSellModal}
+            className="hidden cursor-pointer items-center gap-1.5 rounded-lg border border-white/25 px-3 py-2 text-xs font-semibold text-white/90 transition-all hover:-translate-y-0.5 hover:border-[#9eb65b] hover:bg-white/5 sm:inline-flex"
+          >
+            <PlusCircle size={15} className="text-[#b3c773]" />
+            <span>Sell Produce</span>
+          </button>
+          <button
+            type="button"
             onClick={() => handleNavClick('market')}
-            className="px-4 sm:px-5 py-2 rounded-full bg-[#d1fae5] hover:bg-[#bbf7d0] text-[#0a3721] font-bold text-xs sm:text-sm transition-all duration-200 shadow-md hover:shadow-emerald-500/10 active:scale-95"
+            className="cursor-pointer rounded-lg bg-[#6B8E23] px-3 py-2.5 text-xs font-bold text-white shadow-sm transition-all hover:-translate-y-0.5 hover:bg-[#556B2F] hover:shadow-md sm:px-4 sm:text-sm"
           >
             Get Fresh Produce
           </button>
-
-          {/* Cart Icon */}
           <button
-            onClick={onOpenCart}
-            className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-emerald-900/60 hover:bg-emerald-800 text-emerald-200 flex items-center justify-center relative transition-colors"
-            title="Open Cart"
-            aria-label="View Shopping Cart"
+            type="button"
+            onClick={() => setNotificationsOpen((open) => !open)}
+            className="relative flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg border border-white/20 text-white/85 transition-all hover:-translate-y-0.5 hover:border-white/40 hover:bg-white/5"
+            title="Notifications"
+            aria-label="Notifications"
+            aria-expanded={notificationsOpen}
           >
-            <ShoppingBag size={18} />
-            {cartCount > 0 && (
-              <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-amber-400 text-slate-950 text-[10px] font-extrabold flex items-center justify-center border-2 border-[#0a3721] shadow-sm animate-pulse">
-                {cartCount}
-              </span>
-            )}
+            <Bell size={17} />
+            <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full border border-[#17291e] bg-[#c9a449]" />
           </button>
-
-          {/* Mobile Hamburger Menu Toggle */}
+          {notificationsOpen && (
+            <div className="absolute right-16 top-[calc(100%-0.25rem)] z-50 w-[min(320px,calc(100vw-2rem))] overflow-hidden rounded-xl border border-black/10 bg-white text-black shadow-xl sm:right-24">
+              <div className="border-b border-black/8 px-4 py-3"><h2 className="text-sm font-semibold">Notifications</h2><p className="mt-0.5 text-xs text-black/50">Updates from the IsokoLink community</p></div>
+              <button type="button" onClick={() => { handleNavClick('market'); setNotificationsOpen(false); }} className="block w-full border-b border-black/5 px-4 py-3 text-left transition-colors hover:bg-[#f4f6ee]"><span className="block text-sm font-medium">New harvest listings are available</span><span className="mt-1 block text-xs text-black/50">Explore produce offered by local growers</span></button>
+              <button type="button" onClick={() => { handleNavClick('feed'); setNotificationsOpen(false); }} className="block w-full px-4 py-3 text-left transition-colors hover:bg-[#f4f6ee]"><span className="block text-sm font-medium">Join the latest farm discussions</span><span className="mt-1 block text-xs text-black/50">See updates, ideas, and questions from the community</span></button>
+              <button type="button" onClick={() => { onOpenCart?.(); setNotificationsOpen(false); }} className="flex w-full items-center justify-between border-t border-black/8 px-4 py-3 text-left text-sm font-semibold text-[#556B2F] transition-colors hover:bg-[#f4f6ee]"><span className="inline-flex items-center gap-2"><ShoppingBag size={15} /> View your basket</span><span className="rounded-full bg-[#e8eddc] px-2 py-0.5 text-xs">{cartCount}</span></button>
+            </div>
+          )}
           <button
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="lg:hidden w-9 h-9 rounded-lg bg-emerald-900/60 hover:bg-emerald-800 text-emerald-200 flex items-center justify-center transition-colors"
-            aria-label="Toggle Mobile Menu"
+            type="button"
+            onClick={() => setMobileMenuOpen((open) => !open)}
+            className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg border border-white/20 text-white/85 transition-colors hover:bg-white/5 xl:hidden"
+            aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
+            aria-expanded={mobileMenuOpen}
           >
             {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
           </button>
         </div>
       </div>
 
-      {/* ================= 4. RESPONSIVE MOBILE NAVIGATION DRAWER ================= */}
       {mobileMenuOpen && (
-        <div className="lg:hidden border-t border-emerald-900/50 bg-[#072618] px-4 py-4 space-y-3 shadow-2xl">
-          <div className="grid grid-cols-2 gap-2 text-xs">
-            <button
-              onClick={() => handleNavClick('home')}
-              className={`p-2.5 rounded-xl text-left font-medium flex items-center gap-2 ${
-                activeTab === 'home' ? 'bg-emerald-800 text-white font-bold' : 'bg-emerald-950/60 text-slate-200'
-              }`}
-            >
-              <Sprout size={16} className="text-emerald-400" />
-              <span>Home</span>
-            </button>
-
-            <button
-              onClick={() => handleNavClick('market')}
-              className={`p-2.5 rounded-xl text-left font-medium flex items-center gap-2 ${
-                activeTab === 'market' ? 'bg-emerald-800 text-white font-bold' : 'bg-emerald-950/60 text-slate-200'
-              }`}
-            >
-              <ShoppingBag size={16} className="text-emerald-400" />
-              <span>Market</span>
-            </button>
-
-            <button
-              onClick={() => handleNavClick('defense')}
-              className={`p-2.5 rounded-xl text-left font-medium flex items-center gap-2 ${
-                activeTab === 'defense' ? 'bg-emerald-800 text-white font-bold' : 'bg-emerald-950/60 text-slate-200'
-              }`}
-            >
-              <ShieldAlert size={16} className="text-amber-400" />
-              <span>Disease Hub</span>
-            </button>
-
-            <button
-              onClick={() => handleNavClick('doctor')}
-              className={`p-2.5 rounded-xl text-left font-medium flex items-center gap-2 ${
-                activeTab === 'doctor' ? 'bg-emerald-800 text-white font-bold' : 'bg-emerald-950/60 text-slate-200'
-              }`}
-            >
-              <Stethoscope size={16} className="text-purple-400" />
-              <span>AI Crop Doctor</span>
-            </button>
-
-            <button
-              onClick={() => handleNavClick('agencies')}
-              className={`p-2.5 rounded-xl text-left font-medium flex items-center gap-2 ${
-                activeTab === 'agencies' ? 'bg-emerald-800 text-white font-bold' : 'bg-emerald-950/60 text-slate-200'
-              }`}
-            >
-              <Truck size={16} className="text-cyan-400" />
-              <span>Field Agencies</span>
-            </button>
-
-            <button
-              onClick={() => handleNavClick('feed')}
-              className={`p-2.5 rounded-xl text-left font-medium flex items-center gap-2 ${
-                activeTab === 'feed' ? 'bg-emerald-800 text-white font-bold' : 'bg-emerald-950/60 text-slate-200'
-              }`}
-            >
-              <Newspaper size={16} className="text-emerald-300" />
-              <span>Community Feed</span>
-            </button>
-          </div>
-
-          <div className="pt-2 border-t border-emerald-900/60 flex flex-col gap-2">
+        <nav aria-label="Mobile navigation" className="border-t border-white/10 bg-[#17291e] px-4 py-3 xl:hidden">
+          <div className="mx-auto grid max-w-[1400px] grid-cols-2 gap-2 sm:grid-cols-5">
+            {navigation.map(({ label, tab }) => (
+              <button key={tab} type="button" onClick={() => handleNavClick(tab)} className={`${navLinkClass(tab)} border border-white/10 bg-white/[0.03] text-left`}>
+                {label}
+              </button>
+            ))}
             {onOpenSellModal && (
               <button
-                onClick={() => {
-                  setMobileMenuOpen(false);
-                  onOpenSellModal();
-                }}
-                className="w-full py-2.5 rounded-xl bg-emerald-800/70 hover:bg-emerald-700 text-emerald-100 font-semibold text-xs flex items-center justify-center gap-2"
+                type="button"
+                onClick={() => { setMobileMenuOpen(false); onOpenSellModal(); }}
+                className="flex items-center gap-2 rounded-lg bg-[#6B8E23] px-3 py-2 text-left text-sm font-semibold text-white sm:hidden"
               >
-                <PlusCircle size={15} />
-                <span>Farmer Portal: Sell Produce</span>
+                <PlusCircle size={16} /> Sell
               </button>
             )}
-            
-            <div className="flex justify-between items-center px-1 text-xs text-emerald-300/80">
-              <button onClick={() => handleNavClick('about')} className="hover:text-white py-1">
-                About Us
-              </button>
-              <span>•</span>
-              <button onClick={() => handleNavClick('contact')} className="hover:text-white py-1">
-                Contact & Support
-              </button>
-              <span>•</span>
-              <span className="text-emerald-400 font-semibold">📞 3030 (Toll-Free)</span>
-            </div>
           </div>
-        </div>
+        </nav>
       )}
     </header>
   );

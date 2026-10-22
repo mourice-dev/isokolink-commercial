@@ -1,10 +1,29 @@
 @import "tailwindcss";
 
+@theme {
+  --color-emerald-50: #f4f6ed;
+  --color-emerald-100: #e5ecd5;
+  --color-emerald-200: #cfdeb0;
+  --color-emerald-300: #b4ca83;
+  --color-emerald-400: #8eae46;
+  --color-emerald-500: #6B8E23;
+  --color-emerald-600: #648326;
+  --color-emerald-700: #556B2F;
+  --color-emerald-800: #3f5221;
+  --color-emerald-900: #28391a;
+  --color-emerald-950: #172514;
+}
+
 :root {
-  /* Sans-serif system font stack requested by the user */
-  --font-system: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  /* Söhne is used when available; the bundled system stack keeps the UI readable otherwise. */
+  --font-system: "Söhne", "Sohne", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   
-  /* Green palette across whole project */
+  /* IsokoLink palette */
+  --color-olive: #6B8E23;
+  --color-olive-dark: #556B2F;
+  --color-forest-green: #228B22;
+  --color-black: #000000;
+  --color-white: #ffffff;
   --color-forest-900: #051d11;
   --color-forest-800: #072618;
   --color-forest-700: #0a3721;
@@ -22,7 +41,7 @@
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-family: var(--font-system);
   background-color: #0a3721;
   color: #ffffff;
   margin: 0;
@@ -32,7 +51,20 @@ body {
 }
 
 h1, h2, h3, h4, h5, h6, p, span, button, input, textarea, select {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-family: var(--font-system);
+}
+
+button, a, select, input, textarea {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:not(:disabled) {
+  cursor: pointer;
+}
+
+button:focus-visible, a:focus-visible, select:focus-visible, input:focus-visible, textarea:focus-visible {
+  outline: 2px solid #6B8E23;
+  outline-offset: 2px;
 }
 
 /* Organic Farmiq leaf pattern */
