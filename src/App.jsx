@@ -1,7 +1,5 @@
 import React, { useState } from 'react';
 import FarmiqNavbar from './components/FarmiqNavbar';
-import FarmiqHero from './components/FarmiqHero';
-import HierarchicalFloorTree from './components/HierarchicalFloorTree';
 import SocialNewsFeed from './components/SocialNewsFeed';
 import ProduceMarket from './components/ProduceMarket';
 import DiseasePreventionHub from './components/DiseasePreventionHub';
@@ -14,14 +12,11 @@ import CartDrawer from './components/CartDrawer';
 import Footer from './components/Footer';
 import SustainableAgriLanding from './components/SustainableAgriLanding';
 import { INITIAL_PRODUCE_LISTINGS } from './data/mockData';
-import { CheckCircle2, ShieldCheck, Mail, Phone, MapPin } from 'lucide-react';
+import { ArrowRight, Sprout, Store, Users } from 'lucide-react';
 
 export default function App() {
   // Navigation tabs: 'home' | 'market' | 'defense' | 'doctor' | 'agencies' | 'feed' | 'about' | 'contact'
   const [activeTab, setActiveTab] = useState('home');
-  // For hierarchical tree floor selection
-  const [activeFloor, setActiveFloor] = useState('market');
-
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedDistrict, setSelectedDistrict] = useState('All Rwanda');
   const [selectedCategory, setSelectedCategory] = useState('all');
@@ -153,7 +148,7 @@ export default function App() {
 
         {/* ================= 2. PRODUCE MARKET TAB ================= */}
         {activeTab === 'market' && (
-          <div className="bg-[#f8faf9] text-slate-900 min-h-[90vh] py-10 px-6 sm:px-12 md:px-16">
+          <div className="min-h-[75vh] bg-[#f7f8f4] px-4 py-8 text-black sm:px-8 lg:px-12">
             <div className="max-w-[1400px] mx-auto">
               <ProduceMarket
                 listings={produceListings}
@@ -162,7 +157,10 @@ export default function App() {
                 onOrderClick={handleOpenOrderModal}
                 onAddToCart={handleAddToCart}
                 searchQuery={searchQuery}
+                setSearchQuery={setSearchQuery}
                 selectedDistrict={selectedDistrict}
+                setSelectedDistrict={setSelectedDistrict}
+                onOpenDisease={() => setActiveTab('defense')}
               />
             </div>
           </div>
@@ -170,12 +168,13 @@ export default function App() {
 
         {/* ================= 3. DISEASE DEFENSE HUB TAB ================= */}
         {activeTab === 'defense' && (
-          <div className="bg-[#f8faf9] text-slate-900 min-h-[90vh] py-10 px-6 sm:px-12 md:px-16">
+          <div className="min-h-[75vh] bg-[#f7f8f4] px-4 py-8 text-black sm:px-8 lg:px-12">
             <div className="max-w-[1400px] mx-auto">
               <DiseasePreventionHub
                 onAddToCart={handleAddToCart}
                 onConsultDoctor={() => setActiveTab('doctor')}
                 searchQuery={searchQuery}
+                setSearchQuery={setSearchQuery}
               />
             </div>
           </div>
@@ -183,7 +182,7 @@ export default function App() {
 
         {/* ================= 4. AI CROP DOCTOR TAB ================= */}
         {activeTab === 'doctor' && (
-          <div className="bg-[#f8faf9] text-slate-900 min-h-[90vh] py-10 px-6 sm:px-12 md:px-16">
+          <div className="min-h-[75vh] bg-[#f7f8f4] px-4 py-8 text-black sm:px-8 lg:px-12">
             <div className="max-w-[1400px] mx-auto space-y-8">
               <CropDoctor onAddToCart={handleAddToCart} />
             </div>
@@ -192,7 +191,7 @@ export default function App() {
 
         {/* ================= 5. FIELD AGENCIES TAB ================= */}
         {activeTab === 'agencies' && (
-          <div className="bg-[#f8faf9] text-slate-900 min-h-[90vh] py-10 px-6 sm:px-12 md:px-16">
+          <div className="min-h-[75vh] bg-[#f7f8f4] px-4 py-8 text-black sm:px-8 lg:px-12">
             <div className="max-w-[1400px] mx-auto">
               <AgencyServices onBookAgency={handleOpenAgencyModal} />
             </div>
@@ -201,73 +200,30 @@ export default function App() {
 
         {/* ================= 6. COMMUNITY FARMING FEED & NEWS TAB ================= */}
         {activeTab === 'feed' && (
-          <div className="bg-[#f0f2f5] text-slate-900 min-h-[90vh] py-6">
+          <div className="min-h-[75vh] bg-[#f4f6f1] px-2 py-6 text-black sm:px-4">
             <SocialNewsFeed
               onNavigateTab={setActiveTab}
               onAddToCart={handleAddToCart}
+              onOpenSellModal={() => setIsSellModalOpen(true)}
             />
           </div>
         )}
 
         {/* ================= 7. ABOUT US TAB ================= */}
         {activeTab === 'about' && (
-          <div className="bg-[#0a3721] text-white min-h-[80vh] py-16 px-6 sm:px-12 md:px-20">
-            <div className="max-w-4xl mx-auto space-y-8">
-              <span className="text-xs uppercase font-extrabold tracking-widest text-[#d1fae5] bg-emerald-950 px-3 py-1 rounded-full border border-emerald-800">
-                Our Mission & Standards
-              </span>
-              <h2 className="text-4xl sm:text-5xl font-extrabold tracking-tight font-sans">
-                Connecting Rwanda's Smallholders to Markets & Certified Crop Health
-              </h2>
-              <p className="text-emerald-100/80 text-lg leading-relaxed">
-                Farmiq (IsokoLink Rwanda) was established to resolve the twin crises faced by smallholder farmers:
-                unfair price-gouging by exploitative middlemen, and destructive crop diseases like Late Blight and Fall Armyworm.
-              </p>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-6">
-                <div className="p-6 rounded-2xl bg-emerald-950/70 border border-emerald-800/60 space-y-2">
-                  <h3 className="font-bold text-lg text-white">450+ Cooperatives</h3>
-                  <p className="text-xs text-emerald-200/70">Verified agricultural unions in all 30 districts.</p>
-                </div>
-                <div className="p-6 rounded-2xl bg-emerald-950/70 border border-emerald-800/60 space-y-2">
-                  <h3 className="font-bold text-lg text-amber-300">RAB Accreditation</h3>
-                  <p className="text-xs text-emerald-200/70">100% compliant agrochemicals and disease antidotes.</p>
-                </div>
-                <div className="p-6 rounded-2xl bg-emerald-950/70 border border-emerald-800/60 space-y-2">
-                  <h3 className="font-bold text-lg text-[#d1fae5]">0% Middlemen Cut</h3>
-                  <p className="text-xs text-emerald-200/70">Escrow-backed direct farm-gate to wholesale buyer transactions.</p>
-                </div>
-              </div>
+          <div className="min-h-[75vh] bg-[#f7f8f4] px-5 py-14 text-black sm:px-10 sm:py-20">
+            <div className="mx-auto max-w-6xl">
+              <section className="rounded-3xl bg-[#17291e] px-6 py-10 text-white sm:px-10 sm:py-14"><span className="text-xs font-semibold uppercase tracking-[0.15em] text-[#c2d19e]">About Farm Africa · IsokoLink Rwanda</span><h1 className="mt-4 max-w-3xl text-3xl font-semibold leading-tight tracking-tight sm:text-5xl">A more connected home for Rwanda’s agriculture.</h1><p className="mt-5 max-w-2xl text-base leading-7 text-white/70">IsokoLink brings farmers, cooperatives, buyers, and agricultural supporters together around practical tools for local trade and shared knowledge.</p></section>
+              <div className="mt-8 grid gap-4 md:grid-cols-3">{[{ icon: Sprout, title: 'For growers', text: 'Share harvest availability, introduce new produce, and connect with interested buyers.' }, { icon: Store, title: 'For buyers', text: 'Explore current listings, compare locations and volumes, and request a supplier quote.' }, { icon: Users, title: 'For the community', text: 'Exchange ideas, discuss new farming technologies, and learn from local experience.' }].map(({ icon: Icon, title, text }) => <article key={title} className="rounded-2xl border border-black/8 bg-white p-6"><span className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#6B8E23]/10 text-[#556B2F]"><Icon size={21} /></span><h2 className="mt-5 text-lg font-semibold">{title}</h2><p className="mt-2 text-sm leading-6 text-black/60">{text}</p></article>)}</div>
+              <button type="button" onClick={() => setActiveTab('market')} className="mt-7 inline-flex items-center gap-2 rounded-lg bg-[#6B8E23] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#556B2F]">Explore the market <ArrowRight size={16} /></button>
             </div>
           </div>
         )}
 
         {/* ================= 8. CONTACT TAB ================= */}
         {activeTab === 'contact' && (
-          <div className="bg-[#0a3721] text-white min-h-[80vh] py-16 px-6 sm:px-12 md:px-20">
-            <div className="max-w-3xl mx-auto space-y-8">
-              <h2 className="text-4xl font-extrabold tracking-tight font-sans">
-                Get In Touch With Farmiq Rwanda
-              </h2>
-              <p className="text-emerald-200/80">
-                Have questions about bulk produce purchase, disease prevention kits, or joining as a certified agro-dealer?
-              </p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="p-5 rounded-2xl bg-emerald-950/80 border border-emerald-800/60 flex items-center gap-3">
-                  <Phone className="text-emerald-400" size={24} />
-                  <div>
-                    <div className="text-xs text-emerald-300">Hotline & MoMo Support:</div>
-                    <div className="font-bold text-white">+250 788 412 901 / 4127</div>
-                  </div>
-                </div>
-                <div className="p-5 rounded-2xl bg-emerald-950/80 border border-emerald-800/60 flex items-center gap-3">
-                  <MapPin className="text-emerald-400" size={24} />
-                  <div>
-                    <div className="text-xs text-emerald-300">Headquarters:</div>
-                    <div className="font-bold text-white">Kigali & Musanze Agro Hub</div>
-                  </div>
-                </div>
-              </div>
-            </div>
+          <div className="min-h-[75vh] bg-[#f7f8f4] px-5 py-14 text-black sm:px-10 sm:py-20">
+            <div className="mx-auto max-w-5xl"><span className="text-xs font-semibold uppercase tracking-[0.15em] text-[#6B8E23]">Contact & support</span><h1 className="mt-3 text-3xl font-semibold tracking-tight sm:text-5xl">How can we help?</h1><p className="mt-4 max-w-2xl text-base leading-7 text-black/60">Choose the part of IsokoLink you need. You can browse available produce, ask the farming community, or explore crop health resources.</p><div className="mt-9 grid gap-4 md:grid-cols-3">{[{ icon: Store, title: 'Buying or selling', text: 'Explore listings or publish your harvest.', tab: 'market', action: 'Open the market' }, { icon: Users, title: 'Community questions', text: 'Share an idea or ask local growers and buyers.', tab: 'feed', action: 'Visit community' }, { icon: Sprout, title: 'Crop health', text: 'Browse prevention supplies and crop advice.', tab: 'defense', action: 'Open plant health' }].map(({ icon: Icon, title, text, tab, action }) => <button key={tab} type="button" onClick={() => setActiveTab(tab)} className="group rounded-2xl border border-black/8 bg-white p-6 text-left transition hover:-translate-y-1 hover:border-[#6B8E23]/40 hover:shadow-md"><span className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#6B8E23]/10 text-[#556B2F]"><Icon size={21} /></span><span className="mt-5 block text-lg font-semibold">{title}</span><span className="mt-2 block text-sm leading-6 text-black/60">{text}</span><span className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-[#556B2F]">{action} <ArrowRight size={15} className="transition-transform group-hover:translate-x-1" /></span></button>)}</div></div>
           </div>
         )}
       </main>
@@ -304,8 +260,7 @@ export default function App() {
 
       {/* Toast Notification */}
       {toastMessage && (
-        <div className="fixed bottom-6 right-6 bg-[#072618] text-white py-3 px-5 rounded-xl shadow-2xl flex items-center gap-3 z-50 border-l-4 border-emerald-400">
-          <CheckCircle2 size={18} className="text-emerald-400 flex-shrink-0" />
+        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-3 rounded-xl border-l-4 border-[#9eb65b] bg-[#17291e] px-5 py-3 text-white shadow-2xl">
           <span className="text-sm font-semibold">{toastMessage}</span>
         </div>
       )}
