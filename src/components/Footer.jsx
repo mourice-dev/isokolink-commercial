@@ -13,7 +13,7 @@ const links = [
 export default function Footer({ onSwitchTab, onOpenSellModal }) {
   return (
     <footer className="mt-auto bg-[#17291e] text-white">
-      <div className="mx-auto max-w-[1400px] px-5 py-12 sm:px-10 lg:px-16">
+      <div className="page-gutter mx-auto max-w-[1000px] py-10">
         <div className="grid gap-10 border-b border-white/10 pb-10 md:grid-cols-[1.4fr_0.8fr_0.8fr]">
           <div className="max-w-md">
             <button type="button" onClick={() => onSwitchTab('home')} className="group inline-flex items-center gap-3 text-left">

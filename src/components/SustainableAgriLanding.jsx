@@ -23,16 +23,16 @@ export default function SustainableAgriLanding({ onExploreFarms, onOpenMarket, o
   return (
     <div className="bg-white text-black">
       <section className="bg-[#f7f8f4]">
-        <div className="mx-auto grid max-w-[1400px] items-center gap-9 px-5 py-10 sm:px-10 sm:py-12 lg:grid-cols-[1.05fr_0.95fr] lg:gap-14 lg:px-16 lg:py-14">
+        <div className="page-gutter mx-auto grid max-w-[1000px] items-center gap-8 py-9 sm:py-10 lg:grid-cols-[1.05fr_0.95fr] lg:gap-10 lg:py-12">
           <div className="max-w-2xl py-2">
             <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-[#6B8E23]/20 bg-white px-3.5 py-2 text-xs font-semibold tracking-wide text-[#556B2F] shadow-sm sm:text-sm">
               <MapPin size={15} className="text-[#6B8E23]" />
               <span>Made for Rwanda’s agriculture</span>
             </div>
-            <h1 className="max-w-2xl text-4xl font-semibold leading-[1.08] tracking-[-0.04em] text-[#17291e] sm:text-5xl md:text-6xl">
+            <h1 className="max-w-2xl text-3xl font-semibold leading-[1.1] tracking-[-0.04em] text-[#17291e] sm:text-4xl lg:text-5xl">
               A better way to grow and trade together.
             </h1>
-            <p className="mt-5 max-w-xl text-base leading-7 text-black/65 sm:text-lg sm:leading-8">
+            <p className="mt-4 max-w-xl text-sm leading-6 text-black/65 sm:text-base sm:leading-7">
               IsokoLink connects Rwanda’s farmers, cooperatives, and buyers through one straightforward place to find produce and build stronger local markets.
             </p>
             <div className="mt-7 flex flex-wrap gap-3">
@@ -56,12 +56,12 @@ export default function SustainableAgriLanding({ onExploreFarms, onOpenMarket, o
               <span className="inline-flex items-center gap-2"><Check size={15} className="text-[#6B8E23]" /> Farmer-first marketplace</span>
             </div>
           </div>
-          <div className="relative mx-auto w-full max-w-[620px] lg:ml-auto">
+          <div className="relative mx-auto w-full max-w-[500px] lg:ml-auto">
             <div className="overflow-hidden rounded-3xl border border-black/5 bg-[#e9eedf] shadow-lg shadow-[#17291e]/10 transition-transform duration-300 hover:scale-[1.01]">
               <img
                 src="https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=1400&q=85"
                 alt="Green agricultural fields and hills in Rwanda"
-                className="aspect-[5/4] w-full object-cover"
+                className="aspect-[4/3] w-full object-cover"
               />
             </div>
             <div className="absolute -bottom-4 left-4 rounded-xl border border-black/5 bg-white px-4 py-3 shadow-md sm:bottom-5 sm:left-5"><p className="text-[10px] font-semibold uppercase tracking-[0.13em] text-[#6B8E23]">Connected locally</p><p className="mt-1 text-sm font-semibold text-[#17291e]">Farmers · Buyers · Community</p></div>
@@ -70,7 +70,7 @@ export default function SustainableAgriLanding({ onExploreFarms, onOpenMarket, o
       </section>
 
       <section className="border-b border-black/5 bg-[#f7f8f4]">
-        <div className="mx-auto grid max-w-[1400px] gap-5 px-5 py-7 sm:grid-cols-3 sm:px-10 lg:px-16">
+        <div className="page-gutter mx-auto grid max-w-[1000px] gap-4 py-6 sm:grid-cols-3">
           {[
             ['01', 'Find produce', 'Browse available harvests and connect with sellers.'],
             ['02', 'Make a connection', 'Explore clear details and reach the right supplier.'],
@@ -87,21 +87,21 @@ export default function SustainableAgriLanding({ onExploreFarms, onOpenMarket, o
         </div>
       </section>
 
-      <section className="mx-auto max-w-[1400px] px-5 py-16 sm:px-10 sm:py-20 lg:px-16">
-        <div className="grid gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-end">
+      <section className="page-gutter mx-auto max-w-[1000px] py-12 sm:py-14 lg:py-16">
+        <div className="grid gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-end">
           <div>
             <span className="text-xs font-bold uppercase tracking-[0.16em] text-[#6B8E23]">One connected platform</span>
-            <h2 className="mt-4 max-w-xl text-3xl font-semibold leading-tight tracking-[-0.035em] sm:text-4xl">
+            <h2 className="mt-3 max-w-xl text-2xl font-semibold leading-tight tracking-[-0.035em] sm:text-3xl">
               Built around the people who feed Rwanda.
             </h2>
           </div>
-          <p className="max-w-2xl text-base leading-7 text-black/65 lg:justify-self-end">
+          <p className="max-w-2xl text-sm leading-6 text-black/65 lg:justify-self-end sm:text-base">
             From the first harvest listing to a new community connection, IsokoLink brings useful tools together in a clear, easy-to-use experience.
           </p>
         </div>
-        <div className="mt-10 grid gap-4 md:grid-cols-3">
+        <div className="mt-8 grid gap-4 md:grid-cols-3">
           {benefits.map(({ icon: Icon, title, text }) => (
-            <article key={title} className="rounded-2xl border border-black/8 bg-white p-6 sm:p-7">
+            <article key={title} className="rounded-2xl border border-black/8 bg-white p-5 sm:p-6">
               <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#6B8E23]/10 text-[#556B2F]">
                 <Icon size={21} />
               </div>
@@ -113,8 +113,8 @@ export default function SustainableAgriLanding({ onExploreFarms, onOpenMarket, o
       </section>
 
       <section className="bg-[#f7f8f4]">
-        <div className="mx-auto grid max-w-[1400px] items-center gap-9 px-5 py-14 sm:px-10 sm:py-16 lg:grid-cols-2 lg:px-16">
-          <div className="relative min-h-[290px] overflow-hidden rounded-2xl sm:min-h-[370px]">
+        <div className="page-gutter mx-auto grid max-w-[1000px] items-center gap-8 py-11 sm:py-12 lg:grid-cols-2">
+          <div className="relative min-h-[250px] overflow-hidden rounded-2xl sm:min-h-[320px]">
             <img
               src="https://images.unsplash.com/photo-1499529112087-3cb3b73cec95?auto=format&fit=crop&w=1200&q=85"
               alt="Fresh vegetables growing in a cultivated field"
@@ -128,8 +128,8 @@ export default function SustainableAgriLanding({ onExploreFarms, onOpenMarket, o
           </div>
           <div className="lg:pl-6">
             <span className="text-xs font-bold uppercase tracking-[0.16em] text-[#6B8E23]">Your next harvest starts here</span>
-            <h2 className="mt-4 text-3xl font-semibold leading-tight tracking-[-0.035em] sm:text-4xl">Good food travels further when we work together.</h2>
-            <p className="mt-4 max-w-xl text-base leading-7 text-black/65">
+            <h2 className="mt-3 text-2xl font-semibold leading-tight tracking-[-0.035em] sm:text-3xl">Good food travels further when we work together.</h2>
+            <p className="mt-3 max-w-xl text-sm leading-6 text-black/65 sm:text-base">
               Find fresh listings, meet the people behind them, and take part in a more connected agricultural community.
             </p>
             <div className="mt-7 flex flex-wrap gap-3">

@@ -57,7 +57,7 @@ export default function HierarchicalFloorTree({ activeFloor, onSelectFloor }) {
 
   return (
     <section className="bg-[#072618] border-y border-emerald-900/40 py-8 px-6 sm:px-12 md:px-16 lg:px-20">
-      <div className="max-w-[1400px] mx-auto space-y-6">
+      <div className="max-w-[1000px] mx-auto space-y-6">
         {/* Floor Hierarchy Title */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-emerald-900/60 pb-4">
           <div className="flex items-center gap-2.5">

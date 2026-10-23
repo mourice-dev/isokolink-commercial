@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import FarmiqNavbar from './components/FarmiqNavbar';
 import SocialNewsFeed from './components/SocialNewsFeed';
 import ProduceMarket from './components/ProduceMarket';
@@ -11,6 +11,9 @@ import BookAgencyModal from './components/BookAgencyModal';
 import CartDrawer from './components/CartDrawer';
 import Footer from './components/Footer';
 import SustainableAgriLanding from './components/SustainableAgriLanding';
+import AccountManagement from './components/AccountManagement';
+import FarmerDashboard from './components/FarmerDashboard';
+import ProductDetails from './components/ProductDetails';
 import { INITIAL_PRODUCE_LISTINGS } from './data/mockData';
 import { ArrowRight, Sprout, Store, Users } from 'lucide-react';
 
@@ -23,6 +26,20 @@ export default function App() {
 
   // Produce listings state
   const [produceListings, setProduceListings] = useState(INITIAL_PRODUCE_LISTINGS);
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [pendingOrder, setPendingOrder] = useState(null);
+  const [paymentMethod, setPaymentMethod] = useState('mtn-momo');
+  const [orderSaved, setOrderSaved] = useState(false);
+  const [accountProfile, setAccountProfile] = useState({});
+
+  useEffect(() => {
+    fetch('/api/products').then((r) => r.ok ? r.json() : null).then((items) => { if (Array.isArray(items) && items.length) setProduceListings(items); }).catch(() => {});
+    try {
+      const profiles = JSON.parse(window.localStorage.getItem('isokolink-account-profiles') || '{}');
+      const role = window.localStorage.getItem('isokolink-active-account') || 'farmer';
+      setAccountProfile(profiles[role] || {});
+    } catch { /* Profile is optional until saved. */ }
+  }, [activeTab]);
 
   // Cart state
   const [cartItems, setCartItems] = useState([
@@ -82,21 +99,28 @@ export default function App() {
   };
 
   // Farmer listing produce handler
-  const handleAddProduce = (newProduce) => {
-    setProduceListings([newProduce, ...produceListings]);
+  const handleAddProduce = async (newProduce) => {
+    const product = { ...newProduce, farmerEmail: accountProfile.email || '' };
+    try {
+      const response = await fetch('/api/products', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(product) });
+      if (response.ok) Object.assign(product, await response.json());
+    } catch { /* Keep this session usable if the API is offline. */ }
+    setProduceListings((current) => [product, ...current]);
     showToast(`Harvest "${newProduce.name}" successfully published!`);
   };
 
   // Wholesale Buyer placing order
   const handleOpenOrderModal = (produce) => {
     setSelectedProduceForOrder(produce);
-    setIsOrderModalOpen(true);
+    setSelectedProduct(produce);
+    setActiveTab('product-details');
   };
 
   const handleSubmitOrder = (order) => {
-    showToast(
-      `Order confirmed for ${order.quantityKg} kg of ${order.produceName}! Cooperative notified.`
-    );
+    setPendingOrder(order);
+    setOrderSaved(false);
+    setIsOrderModalOpen(false);
+    setActiveTab('payment');
   };
 
   // Farmer booking agency
@@ -114,6 +138,17 @@ export default function App() {
   const handleCheckoutComplete = () => {
     setCartItems([]);
     showToast('Order confirmed via MTN Mobile Money! Products will be dispatched.');
+  };
+
+  const confirmPayment = async () => {
+    try {
+      const response = await fetch('/api/orders', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...pendingOrder, paymentMethod }) });
+      if (!response.ok) throw new Error('Order could not be saved');
+      setOrderSaved(true);
+      showToast('Order request saved. The selected payment method is ready for confirmation.');
+    } catch {
+      showToast('Could not save the order. Check that the backend is running.');
+    }
   };
 
   return (
@@ -148,8 +183,8 @@ export default function App() {
 
         {/* ================= 2. PRODUCE MARKET TAB ================= */}
         {activeTab === 'market' && (
-          <div className="min-h-[75vh] bg-[#f7f8f4] px-4 py-8 text-black sm:px-8 lg:px-12">
-            <div className="max-w-[1400px] mx-auto">
+          <div className="page-gutter min-h-[75vh] bg-[#f7f8f4] py-8 text-black">
+            <div className="max-w-[1000px] mx-auto">
               <ProduceMarket
                 listings={produceListings}
                 selectedCategory={selectedCategory}
@@ -161,6 +196,7 @@ export default function App() {
                 selectedDistrict={selectedDistrict}
                 setSelectedDistrict={setSelectedDistrict}
                 onOpenDisease={() => setActiveTab('defense')}
+                onManageAccount={() => setActiveTab('profile')}
               />
             </div>
           </div>
@@ -168,8 +204,8 @@ export default function App() {
 
         {/* ================= 3. DISEASE DEFENSE HUB TAB ================= */}
         {activeTab === 'defense' && (
-          <div className="min-h-[75vh] bg-[#f7f8f4] px-4 py-8 text-black sm:px-8 lg:px-12">
-            <div className="max-w-[1400px] mx-auto">
+          <div className="page-gutter min-h-[75vh] bg-[#f7f8f4] py-8 text-black">
+            <div className="max-w-[1000px] mx-auto">
               <DiseasePreventionHub
                 onAddToCart={handleAddToCart}
                 onConsultDoctor={() => setActiveTab('doctor')}
@@ -182,8 +218,8 @@ export default function App() {
 
         {/* ================= 4. AI CROP DOCTOR TAB ================= */}
         {activeTab === 'doctor' && (
-          <div className="min-h-[75vh] bg-[#f7f8f4] px-4 py-8 text-black sm:px-8 lg:px-12">
-            <div className="max-w-[1400px] mx-auto space-y-8">
+          <div className="page-gutter min-h-[75vh] bg-[#f7f8f4] py-8 text-black">
+            <div className="max-w-[1000px] mx-auto space-y-8">
               <CropDoctor onAddToCart={handleAddToCart} />
             </div>
           </div>
@@ -191,8 +227,8 @@ export default function App() {
 
         {/* ================= 5. FIELD AGENCIES TAB ================= */}
         {activeTab === 'agencies' && (
-          <div className="min-h-[75vh] bg-[#f7f8f4] px-4 py-8 text-black sm:px-8 lg:px-12">
-            <div className="max-w-[1400px] mx-auto">
+          <div className="page-gutter min-h-[75vh] bg-[#f7f8f4] py-8 text-black">
+            <div className="max-w-[1000px] mx-auto">
               <AgencyServices onBookAgency={handleOpenAgencyModal} />
             </div>
           </div>
@@ -200,19 +236,29 @@ export default function App() {
 
         {/* ================= 6. COMMUNITY FARMING FEED & NEWS TAB ================= */}
         {activeTab === 'feed' && (
-          <div className="min-h-[75vh] bg-[#f4f6f1] px-2 py-6 text-black sm:px-4">
+          <div className="page-gutter min-h-[75vh] bg-[#f4f6f1] py-6 text-black">
             <SocialNewsFeed
               onNavigateTab={setActiveTab}
-              onAddToCart={handleAddToCart}
-              onOpenSellModal={() => setIsSellModalOpen(true)}
             />
           </div>
         )}
 
+        {activeTab === 'profile' && (
+          <div className="page-gutter min-h-[75vh] bg-[#f7f8f4] py-8 text-black">
+            <AccountManagement />
+          </div>
+        )}
+
+        {activeTab === 'farmer-dashboard' && <div className="page-gutter min-h-[75vh] bg-[#f7f8f4] py-8"><FarmerDashboard listings={produceListings} profile={accountProfile} onBrowseMarket={() => setActiveTab('market')} onAddProduce={() => setIsSellModalOpen(true)} /></div>}
+
+        {activeTab === 'product-details' && <div className="page-gutter min-h-[75vh] bg-[#f7f8f4] py-4"><ProductDetails product={selectedProduct} onBack={() => setActiveTab('market')} onBuy={() => { setSelectedProduceForOrder(selectedProduct); setIsOrderModalOpen(true); }} /></div>}
+
+        {activeTab === 'payment' && <div className="page-gutter min-h-[75vh] bg-[#f7f8f4] py-8 text-[#17291e]"><section className="mx-auto max-w-2xl rounded-3xl border border-black/8 bg-white p-6 shadow-sm sm:p-8"><p className="text-xs font-semibold uppercase tracking-widest text-[#6B8E23]">Checkout</p><h1 className="mt-2 text-2xl font-semibold">Choose a payment option</h1><p className="mt-2 text-sm text-black/55">Your order request will be recorded as pending. Payment collection must be confirmed with the selected provider.</p>{pendingOrder && <div className="mt-5 flex items-center gap-3 rounded-xl bg-[#f4f6ee] p-4"><img src={selectedProduct?.image} alt="" className="h-14 w-14 rounded-lg object-cover"/><div className="min-w-0 flex-1"><p className="truncate text-sm font-semibold">{pendingOrder.produceName}</p><p className="mt-1 text-xs text-black/55">{pendingOrder.quantityKg} kg · {pendingOrder.buyerName}</p></div><strong className="text-sm">{Number(pendingOrder.totalAmount).toLocaleString()} RWF</strong></div>}<div className="mt-5 grid gap-3 sm:grid-cols-2">{[{id:'mtn-momo',name:'MTN Mobile Money',hint:'Pay with MTN MoMo'},{id:'airtel-money',name:'Airtel Money',hint:'Pay with Airtel Money'},{id:'bank-transfer',name:'Bank transfer',hint:'Transfer to supplier account'},{id:'pay-on-delivery',name:'Pay on delivery',hint:'Confirm payment at delivery'}].map((option)=><label key={option.id} className={`cursor-pointer rounded-xl border p-4 transition ${paymentMethod===option.id?'border-[#6B8E23] bg-[#f4f6ee]':'border-black/10 hover:border-[#6B8E23]/50'}`}><span className="flex items-start gap-3"><input type="radio" name="payment" value={option.id} checked={paymentMethod===option.id} onChange={()=>setPaymentMethod(option.id)} className="mt-1 accent-[#6B8E23]"/><span><span className="block text-sm font-semibold">{option.name}</span><span className="mt-1 block text-xs text-black/50">{option.hint}</span></span></span></label>)}</div>{orderSaved && <p role="status" className="mt-5 rounded-xl bg-green-50 p-3 text-sm font-medium text-green-800">Order saved as pending. The farmer can now review your request.</p>}<div className="mt-6 flex flex-wrap gap-3"><button disabled={!pendingOrder || orderSaved} onClick={confirmPayment} className="rounded-xl bg-[#556B2F] px-5 py-3 text-sm font-semibold text-white disabled:opacity-50">{orderSaved?'Order submitted':'Continue with selected option'}</button><button onClick={()=>setActiveTab('market')} className="rounded-xl border border-black/10 px-5 py-3 text-sm font-semibold">Back to market</button></div><p className="mt-4 text-[11px] leading-5 text-black/45">Payments are not charged by this demo. A payment provider integration is required to collect money securely.</p></section></div>}
+
         {/* ================= 7. ABOUT US TAB ================= */}
         {activeTab === 'about' && (
-          <div className="min-h-[75vh] bg-[#f7f8f4] px-5 py-14 text-black sm:px-10 sm:py-20">
-            <div className="mx-auto max-w-6xl">
+          <div className="page-gutter min-h-[75vh] bg-[#f7f8f4] py-12 text-black sm:py-16">
+            <div className="mx-auto max-w-[1000px]">
               <section className="rounded-3xl bg-[#17291e] px-6 py-10 text-white sm:px-10 sm:py-14"><span className="text-xs font-semibold uppercase tracking-[0.15em] text-[#c2d19e]">About Farm Africa · IsokoLink Rwanda</span><h1 className="mt-4 max-w-3xl text-3xl font-semibold leading-tight tracking-tight sm:text-5xl">A more connected home for Rwanda’s agriculture.</h1><p className="mt-5 max-w-2xl text-base leading-7 text-white/70">IsokoLink brings farmers, cooperatives, buyers, and agricultural supporters together around practical tools for local trade and shared knowledge.</p></section>
               <div className="mt-8 grid gap-4 md:grid-cols-3">{[{ icon: Sprout, title: 'For growers', text: 'Share harvest availability, introduce new produce, and connect with interested buyers.' }, { icon: Store, title: 'For buyers', text: 'Explore current listings, compare locations and volumes, and request a supplier quote.' }, { icon: Users, title: 'For the community', text: 'Exchange ideas, discuss new farming technologies, and learn from local experience.' }].map(({ icon: Icon, title, text }) => <article key={title} className="rounded-2xl border border-black/8 bg-white p-6"><span className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#6B8E23]/10 text-[#556B2F]"><Icon size={21} /></span><h2 className="mt-5 text-lg font-semibold">{title}</h2><p className="mt-2 text-sm leading-6 text-black/60">{text}</p></article>)}</div>
               <button type="button" onClick={() => setActiveTab('market')} className="mt-7 inline-flex items-center gap-2 rounded-lg bg-[#6B8E23] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#556B2F]">Explore the market <ArrowRight size={16} /></button>
@@ -222,7 +268,7 @@ export default function App() {
 
         {/* ================= 8. CONTACT TAB ================= */}
         {activeTab === 'contact' && (
-          <div className="min-h-[75vh] bg-[#f7f8f4] px-5 py-14 text-black sm:px-10 sm:py-20">
+          <div className="page-gutter min-h-[75vh] bg-[#f7f8f4] py-12 text-black sm:py-16">
             <div className="mx-auto max-w-5xl"><span className="text-xs font-semibold uppercase tracking-[0.15em] text-[#6B8E23]">Contact & support</span><h1 className="mt-3 text-3xl font-semibold tracking-tight sm:text-5xl">How can we help?</h1><p className="mt-4 max-w-2xl text-base leading-7 text-black/60">Choose the part of IsokoLink you need. You can browse available produce, ask the farming community, or explore crop health resources.</p><div className="mt-9 grid gap-4 md:grid-cols-3">{[{ icon: Store, title: 'Buying or selling', text: 'Explore listings or publish your harvest.', tab: 'market', action: 'Open the market' }, { icon: Users, title: 'Community questions', text: 'Share an idea or ask local growers and buyers.', tab: 'feed', action: 'Visit community' }, { icon: Sprout, title: 'Crop health', text: 'Browse prevention supplies and crop advice.', tab: 'defense', action: 'Open plant health' }].map(({ icon: Icon, title, text, tab, action }) => <button key={tab} type="button" onClick={() => setActiveTab(tab)} className="group rounded-2xl border border-black/8 bg-white p-6 text-left transition hover:-translate-y-1 hover:border-[#6B8E23]/40 hover:shadow-md"><span className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#6B8E23]/10 text-[#556B2F]"><Icon size={21} /></span><span className="mt-5 block text-lg font-semibold">{title}</span><span className="mt-2 block text-sm leading-6 text-black/60">{text}</span><span className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-[#556B2F]">{action} <ArrowRight size={15} className="transition-transform group-hover:translate-x-1" /></span></button>)}</div></div>
           </div>
         )}

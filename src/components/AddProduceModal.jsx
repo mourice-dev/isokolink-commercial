@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
-import { X, Sprout, Upload, Check } from 'lucide-react';
+import { ImagePlus, Upload, X, Sprout } from 'lucide-react';
 import { PRODUCE_CATEGORIES, RWANDA_DISTRICTS } from '../data/mockData';
+import './AddProduceModal.css';
 
 export default function AddProduceModal({ isOpen, onClose, onAddProduce }) {
+  const [imageError, setImageError] = useState('');
   const [formData, setFormData] = useState({
     name: '',
     kinyarwandaName: '',
@@ -23,6 +25,27 @@ export default function AddProduceModal({ isOpen, onClose, onAddProduce }) {
   });
 
   if (!isOpen) return null;
+
+  const handleImageChange = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      setImageError('Choose an image file to continue.');
+      e.target.value = '';
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setImageError('Please choose an image smaller than 5 MB.');
+      e.target.value = '';
+      return;
+    }
+
+    setImageError('');
+    const reader = new FileReader();
+    reader.onload = () => setFormData((current) => ({ ...current, image: reader.result }));
+    reader.onerror = () => setImageError('We couldn’t load that image. Please try another one.');
+    reader.readAsDataURL(file);
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -48,19 +71,24 @@ export default function AddProduceModal({ isOpen, onClose, onAddProduce }) {
   };
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-header">
-          <div className="modal-title">
-            <h3>List Your Harvest on IsokoLink</h3>
-            <p>Connect your harvest directly to commercial buyers and bulk institutional purchasers</p>
+    <div className="modal-overlay harvest-overlay" onClick={onClose}>
+      <div className="modal-content harvest-modal" onClick={(e) => e.stopPropagation()}>
+        <div className="harvest-header">
+          <div className="harvest-heading">
+            <span className="harvest-icon"><Sprout size={22} /></span>
+            <div className="modal-title">
+              <span className="harvest-eyebrow">ISOKOLINK MARKETPLACE</span>
+              <h3>List Your Harvest</h3>
+              <p>Share your produce with trusted buyers across Rwanda.</p>
+            </div>
           </div>
-          <button className="btn-close-modal" onClick={onClose}>
+          <button className="btn-close-modal" type="button" aria-label="Close form" onClick={onClose}>
             <X size={20} />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit}>
+        <form className="harvest-form" onSubmit={handleSubmit}>
+          <div className="harvest-section-heading"><span>01</span><div><h4>Produce details</h4><p>Tell buyers what you’re offering.</p></div></div>
           <div className="form-grid-2">
             <div className="form-group">
               <label>Crop / Produce Name (English)</label>
@@ -114,6 +142,30 @@ export default function AddProduceModal({ isOpen, onClose, onAddProduce }) {
             </div>
           </div>
 
+          <div className="harvest-photo-field">
+            <div className="harvest-photo-copy">
+              <label htmlFor="harvest-photo">Product photo</label>
+              <p>Add a clear photo so buyers can see the appearance and quality of your produce.</p>
+              <label className="harvest-photo-button" htmlFor="harvest-photo">
+                <Upload size={16} /> Choose a photo
+              </label>
+              <input
+                className="harvest-photo-input"
+                id="harvest-photo"
+                type="file"
+                accept="image/*"
+                onChange={handleImageChange}
+              />
+              <span className="harvest-photo-hint">JPG, PNG or WebP · Up to 5 MB</span>
+              {imageError && <span className="harvest-photo-error" role="alert">{imageError}</span>}
+            </div>
+            <div className="harvest-photo-preview">
+              {formData.image ? <img src={formData.image} alt="Preview of the produce listing" /> : <div className="harvest-photo-empty"><ImagePlus size={28} /><span>Photo preview</span></div>}
+              <span className="harvest-preview-badge"><ImagePlus size={13} /> Listing preview</span>
+            </div>
+          </div>
+
+          <div className="harvest-section-heading"><span>02</span><div><h4>Availability & pricing</h4><p>Set the quantity and your farm-gate price.</p></div></div>
           <div className="form-grid-2">
             <div className="form-group">
               <label>Available Quantity</label>
@@ -150,6 +202,7 @@ export default function AddProduceModal({ isOpen, onClose, onAddProduce }) {
             </div>
           </div>
 
+          <div className="harvest-section-heading"><span>03</span><div><h4>Seller & quality</h4><p>Help buyers reach you and understand your harvest.</p></div></div>
           <div className="form-grid-2">
             <div className="form-group">
               <label>Farmer Name or Cooperative</label>
@@ -197,9 +250,12 @@ export default function AddProduceModal({ isOpen, onClose, onAddProduce }) {
             </label>
           </div>
 
-          <button type="submit" className="btn-submit-form">
+          <div className="harvest-submit-row">
+            <p>Your listing will be visible to marketplace buyers.</p>
+            <button type="submit" className="btn-submit-form">
             Publish Harvest to Marketplace
-          </button>
+            </button>
+          </div>
         </form>
       </div>
     </div>

@@ -1,10 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { ImagePlus, MessageCircle, Plus, Send, Sprout, Store, ThumbsUp, X } from 'lucide-react';
+import { MessageCircle, Send, Sprout, Store, ThumbsUp, UserRound, X } from 'lucide-react';
 import { INITIAL_SOCIAL_POSTS, SIDEBAR_CONTACTS } from '../data/socialFeedData';
 
-const POST_TYPES = ['Farm update', 'New produce', 'Farm technology', 'Idea or quote'];
 const FEED_FILTERS = ['All posts', 'New produce', 'Farm technology', 'Ideas & quotes'];
-const USER_AVATAR = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80';
 
 function readStoredArray(key, fallback) {
   try {
@@ -15,14 +13,10 @@ function readStoredArray(key, fallback) {
   }
 }
 
-export default function SocialNewsFeed({ onNavigateTab, onOpenSellModal }) {
+export default function SocialNewsFeed({ onNavigateTab }) {
   const [posts, setPosts] = useState(() => readStoredArray('isokolink-community-posts', INITIAL_SOCIAL_POSTS));
   const [chatMessages, setChatMessages] = useState(() => readStoredArray('isokolink-community-messages', []));
   const [feedFilter, setFeedFilter] = useState('All posts');
-  const [postText, setPostText] = useState('');
-  const [postType, setPostType] = useState(POST_TYPES[0]);
-  const [imageUrl, setImageUrl] = useState('');
-  const [showImageInput, setShowImageInput] = useState(false);
   const [activeCommentId, setActiveCommentId] = useState(null);
   const [commentText, setCommentText] = useState('');
   const [activeChat, setActiveChat] = useState(null);
@@ -42,32 +36,6 @@ export default function SocialNewsFeed({ onNavigateTab, onOpenSellModal }) {
     if (feedFilter === 'Farm technology') return post.postType === 'Farm technology';
     return post.postType === 'Idea or quote';
   });
-
-  const publishPost = (event) => {
-    event.preventDefault();
-    if (!postText.trim() && !imageUrl.trim()) return;
-    const newPost = {
-      id: `post-${Date.now()}`,
-      postType,
-      authorName: 'You',
-      authorAvatar: USER_AVATAR,
-      authorBadge: '',
-      timeAgo: 'Just now',
-      location: 'Rwanda',
-      content: postText.trim(),
-      images: imageUrl.trim() ? [imageUrl.trim()] : [],
-      likes: 0,
-      commentsCount: 0,
-      hasLiked: false,
-      comments: [],
-    };
-    setPosts((current) => [newPost, ...current]);
-    setPostText('');
-    setImageUrl('');
-    setPostType(POST_TYPES[0]);
-    setShowImageInput(false);
-    setFeedFilter('All posts');
-  };
 
   const toggleLike = (postId) => setPosts((current) => current.map((post) => {
     if (post.id !== postId) return post;
@@ -94,34 +62,26 @@ export default function SocialNewsFeed({ onNavigateTab, onOpenSellModal }) {
   };
 
   const contacts = SIDEBAR_CONTACTS.filter((contact) => !contact.isAi).slice(0, 5);
+  let communityProfile = {};
+  try {
+    const profiles = JSON.parse(window.localStorage.getItem('isokolink-account-profiles') || '{}');
+    const role = window.localStorage.getItem('isokolink-active-account') || 'farmer';
+    communityProfile = profiles[role] || {};
+  } catch { /* Use the initials avatar when browser storage is unavailable. */ }
 
   return (
-    <div className="mx-auto max-w-6xl px-3 py-8 sm:px-6">
-      <header className="mb-7 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-        <div><p className="text-xs font-bold uppercase tracking-[0.16em] text-[#6B8E23]">IsokoLink Rwanda</p><h1 className="mt-1 text-3xl font-semibold tracking-tight text-[#17291e]">Farming community</h1><p className="mt-2 text-sm text-black/55">Harvest updates, practical ideas, and conversations from the field.</p></div>
-        <button type="button" onClick={() => onNavigateTab('market')} className="inline-flex w-fit items-center gap-2 rounded-lg border border-black/10 bg-white px-3.5 py-2.5 text-sm font-semibold text-[#556B2F] transition hover:border-[#6B8E23]/50 hover:bg-[#f6f8f0]"><Store size={16} /> Browse market</button>
+    <div className="mx-auto max-w-[1000px] py-9">
+      <header className="mb-7 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div><p className="text-xs font-bold uppercase tracking-[0.16em] text-[#6B8E23]">IsokoLink Rwanda</p><h1 className="mt-1 text-3xl font-semibold tracking-tight text-[#17291e]">Farming community</h1></div>
+        <div className="flex flex-wrap gap-2">
+          <button type="button" onClick={() => onNavigateTab('market')} className="inline-flex w-fit items-center gap-2 rounded-lg border border-black/10 bg-white px-3.5 py-2.5 text-sm font-semibold text-[#556B2F] transition hover:border-[#6B8E23]/50 hover:bg-[#f6f8f0]"><Store size={16} /> Browse market</button>
+          <button type="button" onClick={() => onNavigateTab('farmer-dashboard')} className="inline-flex w-fit items-center gap-2 rounded-lg border border-[#556B2F]/20 bg-white px-3.5 py-2 text-sm font-semibold text-[#556B2F] transition hover:bg-[#f6f8f0]">Farmer dashboard</button>
+          <button type="button" onClick={() => onNavigateTab('profile')} className="inline-flex w-fit items-center gap-2 rounded-lg bg-[#556B2F] px-3 py-2 text-sm font-semibold text-white transition hover:bg-[#3f5221]"><span className="h-7 w-7 overflow-hidden rounded-full border border-white/50 bg-white/20">{communityProfile.avatarUrl ? <img src={communityProfile.avatarUrl} alt="" className="h-full w-full object-cover"/> : <span className="grid h-full place-items-center"><UserRound size={15}/></span>}</span><span className="hidden sm:inline">Account</span></button>
+        </div>
       </header>
 
       <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_280px]">
         <main className="min-w-0 space-y-4">
-          <form onSubmit={publishPost} className="rounded-2xl border border-black/8 bg-white p-4 shadow-sm sm:p-5">
-            <div className="flex items-start gap-3">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#e9eedf] text-sm font-bold text-[#556B2F]">You</div>
-              <textarea value={postText} onChange={(event) => setPostText(event.target.value)} placeholder="Share a harvest, new technology, idea, or question…" rows={3} className="min-h-[82px] flex-1 resize-y rounded-xl border border-black/8 bg-[#fafbf8] px-4 py-3 text-sm leading-6 outline-none transition placeholder:text-black/40 focus:border-[#6B8E23] focus:ring-2 focus:ring-[#6B8E23]/10" />
-            </div>
-            {showImageInput && <label className="mt-3 block pl-[52px]"><span className="sr-only">Photo URL</span><input value={imageUrl} onChange={(event) => setImageUrl(event.target.value)} placeholder="Paste a photo link (optional)" className="w-full rounded-lg border border-black/10 px-3 py-2.5 text-sm outline-none transition focus:border-[#6B8E23]" /></label>}
-            <div className="mt-3 flex flex-wrap items-center justify-between gap-3 border-t border-black/6 pt-3 sm:pl-[52px]">
-              <div className="flex flex-wrap items-center gap-2">
-                <label className="sr-only" htmlFor="community-post-type">Post type</label>
-                <select id="community-post-type" value={postType} onChange={(event) => setPostType(event.target.value)} className="rounded-lg border border-black/10 bg-white px-3 py-2 text-xs font-medium text-black/70 outline-none transition hover:border-[#6B8E23]/50 focus:border-[#6B8E23]">
-                  {POST_TYPES.map((type) => <option key={type}>{type}</option>)}
-                </select>
-                <button type="button" onClick={() => setShowImageInput((show) => !show)} className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-semibold transition ${showImageInput ? 'bg-[#e9eedf] text-[#556B2F]' : 'text-black/60 hover:bg-[#f4f6ee] hover:text-[#556B2F]'}`}><ImagePlus size={15} /> Add photo</button>
-              </div>
-              <button type="submit" disabled={!postText.trim() && !imageUrl.trim()} className="inline-flex items-center gap-2 rounded-lg bg-[#556B2F] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#3f5221] disabled:cursor-not-allowed disabled:opacity-45"><Plus size={16} /> Publish</button>
-            </div>
-          </form>
-
           <div className="flex gap-1 overflow-x-auto rounded-xl border border-black/8 bg-white p-1.5">
             {FEED_FILTERS.map((filter) => <button key={filter} type="button" onClick={() => setFeedFilter(filter)} className={`shrink-0 rounded-lg px-3.5 py-2 text-xs font-semibold transition-colors ${feedFilter === filter ? 'bg-[#556B2F] text-white' : 'text-black/55 hover:bg-[#f4f6ee] hover:text-[#556B2F]'}`}>{filter}</button>)}
           </div>
@@ -136,7 +96,7 @@ export default function SocialNewsFeed({ onNavigateTab, onOpenSellModal }) {
                 {post.postType && <span className="rounded-full bg-[#f4f6ee] px-2.5 py-1 text-[10px] font-semibold text-[#556B2F]">{post.postType}</span>}
               </header>
               {post.content && <p className="whitespace-pre-line px-4 pb-4 text-sm leading-6 text-black/80 sm:px-5">{post.content}</p>}
-              {post.images?.[0] && <img src={post.images[0]} alt="Shared farm update" loading="lazy" className="max-h-[440px] w-full bg-[#f4f6ee] object-cover" />}
+              {post.images?.[0] && <img src={post.images[0]} alt="Shared farm update" loading="lazy" className="max-h-[360px] w-full bg-[#f4f6ee] object-cover" />}
               <div className="flex items-center justify-between border-t border-black/6 px-4 py-2.5 text-xs text-black/45 sm:px-5"><span>{post.likes || 0} likes</span><span>{post.commentsCount || post.comments?.length || 0} comments</span></div>
               <div className="grid grid-cols-2 gap-2 border-t border-black/6 p-2">
                 <button type="button" onClick={() => toggleLike(post.id)} className={`inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg py-2.5 text-sm font-medium transition-colors hover:bg-[#f4f6ee] ${post.hasLiked ? 'text-[#556B2F]' : 'text-black/55 hover:text-[#556B2F]'}`}><ThumbsUp size={16} fill={post.hasLiked ? 'currentColor' : 'none'} /> Like</button>

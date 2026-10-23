@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Bell, Menu, PlusCircle, ShoppingBag, X } from 'lucide-react';
+import { Bell, Menu, PlusCircle, ShoppingBag, UserPlus, X } from 'lucide-react';
 
 const navigation = [
   { label: 'Home', tab: 'home' },
@@ -28,7 +28,8 @@ export default function FarmiqNavbar({ activeTab, setActiveTab, onOpenSellModal,
 
   return (
     <header className="sticky top-0 z-50 border-b border-white/10 bg-[#17291e] text-white shadow-[0_4px_18px_rgba(0,0,0,0.16)]">
-      <div className="mx-auto flex max-w-[1400px] items-center justify-between gap-3 px-4 py-2 sm:px-8 md:px-12 xl:grid xl:grid-cols-[1fr_auto_1fr]">
+      <div className="page-gutter mx-auto flex max-w-[1080px] items-center justify-between gap-3 py-2 xl:grid xl:grid-cols-[1fr_auto_1fr]">
+        <div className="flex min-w-0 shrink-0 items-center gap-3 xl:justify-self-start">
         <button
           type="button"
           onClick={() => handleNavClick('home')}
@@ -47,6 +48,11 @@ export default function FarmiqNavbar({ activeTab, setActiveTab, onOpenSellModal,
             <span className="mt-1 text-[8px] font-semibold uppercase tracking-[0.17em] text-[#b7c49e] sm:text-[9px]">IsokoLink Rwanda</span>
           </span>
         </button>
+
+        <button type="button" onClick={() => handleNavClick('profile')} className="hidden shrink-0 items-center gap-1.5 rounded-lg border border-[#c2d19e]/45 px-2.5 py-2 text-xs font-semibold text-[#e6edda] transition hover:bg-white/10 sm:inline-flex">
+          <UserPlus size={15} className="text-[#c2d19e]" /> Sign up
+        </button>
+        </div>
 
         <nav aria-label="Main navigation" className="hidden items-center justify-self-center gap-1 xl:flex">
           {navigation.map(({ label, tab }) => (
@@ -71,6 +77,16 @@ export default function FarmiqNavbar({ activeTab, setActiveTab, onOpenSellModal,
             className="cursor-pointer rounded-lg bg-[#6B8E23] px-3 py-2.5 text-xs font-bold text-white shadow-sm transition-all hover:-translate-y-0.5 hover:bg-[#556B2F] hover:shadow-md sm:px-4 sm:text-sm"
           >
             Get Fresh Produce
+          </button>
+          <button
+            type="button"
+            onClick={onOpenCart}
+            className="relative flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg border border-white/20 text-white/85 transition-all hover:-translate-y-0.5 hover:border-[#c2d19e]/60 hover:bg-white/5"
+            title="Open cart"
+            aria-label={`Open cart, ${cartCount} ${cartCount === 1 ? 'item' : 'items'}`}
+          >
+            <ShoppingBag size={17} />
+            <span className="absolute -right-1 -top-1 flex h-[17px] min-w-[17px] items-center justify-center rounded-full border-2 border-[#17291e] bg-[#9eb65b] px-0.5 text-[9px] font-bold leading-none text-[#17291e]">{cartCount}</span>
           </button>
           <button
             type="button"
@@ -105,12 +121,13 @@ export default function FarmiqNavbar({ activeTab, setActiveTab, onOpenSellModal,
 
       {mobileMenuOpen && (
         <nav aria-label="Mobile navigation" className="border-t border-white/10 bg-[#17291e] px-4 py-3 xl:hidden">
-          <div className="mx-auto grid max-w-[1400px] grid-cols-2 gap-2 sm:grid-cols-5">
+          <div className="page-gutter mx-auto grid max-w-[1080px] grid-cols-2 gap-2 sm:grid-cols-6">
             {navigation.map(({ label, tab }) => (
               <button key={tab} type="button" onClick={() => handleNavClick(tab)} className={`${navLinkClass(tab)} border border-white/10 bg-white/[0.03] text-left`}>
                 {label}
               </button>
             ))}
+            <button type="button" onClick={() => handleNavClick('profile')} className="flex items-center gap-2 rounded-lg border border-[#c2d19e]/35 bg-white/[0.03] px-3 py-2 text-left text-sm font-medium text-[#e6edda]"><UserPlus size={15}/> Sign up</button>
             {onOpenSellModal && (
               <button
                 type="button"

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { X, Trash2, Plus, Minus, ShoppingBag, ShieldCheck, CheckCircle2, ArrowRight } from 'lucide-react';
+import { X, Trash2, Plus, Minus, ShoppingBag, ShieldCheck, CheckCircle2, ArrowRight, MapPin, CreditCard } from 'lucide-react';
+import './CartDrawer.css';
 
 export default function CartDrawer({
   isOpen,
@@ -20,8 +21,10 @@ export default function CartDrawer({
     (sum, item) => sum + item.price * (item.quantity || 1),
     0
   );
+  const totalItems = cartItems.reduce((sum, item) => sum + (item.quantity || 1), 0);
 
-  const handleMomoCheckout = () => {
+  const handleMomoCheckout = (event) => {
+    event.preventDefault();
     if (cartItems.length === 0) return;
     setIsProcessing(true);
     setTimeout(() => {
@@ -37,26 +40,28 @@ export default function CartDrawer({
 
   return (
     <div className="cart-drawer-overlay" onClick={onClose}>
-      <div className="cart-drawer" onClick={(e) => e.stopPropagation()}>
+      <div className="cart-drawer" role="dialog" aria-modal="true" aria-labelledby="cart-title" onClick={(e) => e.stopPropagation()}>
         <div className="cart-header">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-            <ShoppingBag size={20} style={{ color: 'var(--primary)' }} />
-            <h3 style={{ fontSize: '1.2rem', color: 'var(--primary-dark)' }}>
-              Agri-Supply & Produce Cart
-            </h3>
+          <div className="cart-heading">
+            <span className="cart-heading-icon"><ShoppingBag size={20} /></span>
+            <div>
+              <span className="cart-eyebrow">ISOKOLINK MARKETPLACE</span>
+              <h3 id="cart-title">Agri-Supply &amp; Produce Cart</h3>
+              <p>{totalItems} {totalItems === 1 ? 'item' : 'items'} ready for checkout</p>
+            </div>
           </div>
-          <button className="btn-close-modal" onClick={onClose}>
+          <button className="cart-close" type="button" aria-label="Close cart" onClick={onClose}>
             <X size={18} />
           </button>
         </div>
 
         {orderDone ? (
-          <div style={{ textAlign: 'center', padding: '3rem 1.5rem', flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-            <CheckCircle2 size={56} style={{ color: '#16a34a', marginBottom: '1rem' }} />
-            <h3 style={{ fontSize: '1.4rem', color: 'var(--primary-dark)', marginBottom: '0.5rem' }}>
+          <div className="cart-success">
+            <span className="cart-success-icon"><CheckCircle2 size={34} /></span>
+            <h3>
               Payment Push Sent via MTN MoMo!
             </h3>
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', maxWidth: 300 }}>
+            <p>
               Check your mobile phone ({phoneNumber}) and enter your MoMo PIN to authorize order #{Math.floor(100000 + Math.random() * 900000)}.
             </p>
           </div>
@@ -64,72 +69,51 @@ export default function CartDrawer({
           <>
             <div className="cart-items-list">
               {cartItems.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: '4rem 1rem', color: 'var(--text-muted)' }}>
-                  <ShoppingBag size={48} style={{ opacity: 0.3, margin: '0 auto 1rem' }} />
-                  <p style={{ fontWeight: 600 }}>Your cart is empty.</p>
-                  <p style={{ fontSize: '0.82rem', marginTop: '0.25rem' }}>
-                    Browse disease prevention kits or food harvests to add items.
-                  </p>
+                <div className="cart-empty">
+                  <span className="cart-empty-icon"><ShoppingBag size={26} /></span>
+                  <h4>Your cart is empty</h4>
+                  <p>Browse farm inputs or fresh harvests and add items here.</p>
                 </div>
               ) : (
                 cartItems.map((item) => (
                   <div key={item.id} className="cart-item-row">
-                    <div className="cart-item-icon">
-                      {item.type === 'disease-defense' ? '🛡️' : '🌾'}
-                    </div>
+                    <div className={`cart-item-icon ${item.type === 'disease-defense' ? 'cart-item-icon-supply' : 'cart-item-icon-produce'}`} aria-hidden="true">{item.type === 'disease-defense' ? '🛡️' : '🌾'}</div>
 
                     <div className="cart-item-details">
                       <div className="cart-item-title">{item.title}</div>
-                      <div className="cart-item-price">
-                        {item.price.toLocaleString()} RWF / {item.unit}
-                      </div>
-                      {item.supplier && (
-                        <div style={{ fontSize: '0.72rem', color: 'var(--text-light)' }}>
-                          Dispatched by: {item.supplier}
-                        </div>
-                      )}
+                      <div className="cart-item-price">{item.price.toLocaleString()} RWF <span>/ {item.unit}</span></div>
+                      {item.supplier && <div className="cart-item-supplier">From {item.supplier}</div>}
+                      <div className="cart-line-total">Line total <strong>{(item.price * (item.quantity || 1)).toLocaleString()} RWF</strong></div>
                     </div>
 
-                    {/* Quantity controls */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                    <div className="cart-item-actions">
                       <button
-                        style={{
-                          width: 24,
-                          height: 24,
-                          borderRadius: 4,
-                          background: 'var(--surface-2)',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center'
-                        }}
+                        type="button"
+                        className="cart-quantity-button"
+                        aria-label={`Decrease quantity of ${item.title}`}
                         onClick={() => onUpdateQuantity(item.id, Math.max(1, (item.quantity || 1) - 1))}
                       >
                         <Minus size={12} />
                       </button>
 
-                      <span style={{ fontWeight: 700, fontSize: '0.85rem', minWidth: 20, textAlign: 'center' }}>
+                      <span className="cart-quantity-value" aria-label={`Quantity ${(item.quantity || 1)}`}>
                         {item.quantity || 1}
                       </span>
 
                       <button
-                        style={{
-                          width: 24,
-                          height: 24,
-                          borderRadius: 4,
-                          background: 'var(--surface-2)',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center'
-                        }}
+                        type="button"
+                        className="cart-quantity-button"
+                        aria-label={`Increase quantity of ${item.title}`}
                         onClick={() => onUpdateQuantity(item.id, (item.quantity || 1) + 1)}
                       >
                         <Plus size={12} />
                       </button>
 
                       <button
-                        style={{ color: '#ef4444', marginLeft: '0.4rem', padding: '0.2rem' }}
+                        type="button"
+                        className="cart-remove-button"
                         onClick={() => onRemoveItem(item.id)}
-                        title="Remove"
+                        aria-label={`Remove ${item.title} from cart`}
                       >
                         <Trash2 size={15} />
                       </button>
@@ -140,13 +124,14 @@ export default function CartDrawer({
             </div>
 
             {cartItems.length > 0 && (
-              <div className="cart-footer">
-                <div className="form-group" style={{ marginBottom: '0.75rem' }}>
-                  <label style={{ fontSize: '0.78rem' }}>Pickup / Delivery Depot in Rwanda</label>
+              <form className="cart-footer" onSubmit={handleMomoCheckout}>
+                <div className="cart-section-title"><MapPin size={16} /><div><h4>Delivery details</h4><p>Choose where your order should go.</p></div></div>
+                <div className="cart-field">
+                  <label htmlFor="cart-delivery-location">Pickup / delivery depot</label>
                   <select
+                    id="cart-delivery-location"
                     value={deliveryLocation}
                     onChange={(e) => setDeliveryLocation(e.target.value)}
-                    style={{ fontSize: '0.82rem', padding: '0.5rem' }}
                   >
                     <option value="Musanze Sector SACCO Agro-Dealers">Musanze Sector SACCO Agro-Dealers Hub</option>
                     <option value="Nyabugogo Agro-Inputs Wholesale Depot">Nyabugogo Agro-Inputs Wholesale Depot (Kigali)</option>
@@ -156,35 +141,37 @@ export default function CartDrawer({
                   </select>
                 </div>
 
-                <div className="form-group" style={{ marginBottom: '0.9rem' }}>
-                  <label style={{ fontSize: '0.78rem' }}>MTN / Airtel Mobile Money Number</label>
+                <div className="cart-field">
+                  <label htmlFor="cart-phone-number">Mobile Money number</label>
                   <input
+                    id="cart-phone-number"
                     type="tel"
                     value={phoneNumber}
                     onChange={(e) => setPhoneNumber(e.target.value)}
-                    style={{ fontSize: '0.82rem', padding: '0.5rem' }}
                     placeholder="+250 788 000 000"
+                    required
                   />
                 </div>
 
                 <div className="cart-total-row">
-                  <span>Grand Total:</span>
+                  <span><span className="cart-total-caption">Order total</span><span className="cart-total-note">Delivery charges confirmed by supplier</span></span>
                   <span>{totalAmount.toLocaleString()} RWF</span>
                 </div>
 
                 <button
+                  type="submit"
                   className="btn-checkout-momo"
-                  onClick={handleMomoCheckout}
                   disabled={isProcessing}
                 >
-                  <span>{isProcessing ? 'Connecting to MoMo Gateway...' : 'Pay with MTN MoMo / Airtel Money'}</span>
+                  <span className="cart-checkout-icon"><CreditCard size={17} /></span>
+                  <span>{isProcessing ? 'Connecting to MoMo Gateway...' : 'Continue with Mobile Money'}</span>
                   {!isProcessing && <ArrowRight size={16} />}
                 </button>
 
-                <div style={{ textAlign: 'center', fontSize: '0.72rem', color: 'var(--text-light)', marginTop: '0.4rem' }}>
-                  🔒 Escrow protection: Funds held until input delivery verification
+                <div className="cart-security-note">
+                  <ShieldCheck size={15} /> Escrow protection holds funds until delivery is verified.
                 </div>
-              </div>
+              </form>
             )}
           </>
         )}

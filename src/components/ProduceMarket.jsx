@@ -1,8 +1,8 @@
 import React, { useMemo, useState } from 'react';
-import { ArrowDownRight, ArrowRight, ArrowUpRight, BadgeCheck, MapPin, Search, ShieldPlus, SlidersHorizontal, Sprout } from 'lucide-react';
+import { ArrowDownRight, ArrowRight, ArrowUpRight, BadgeCheck, MapPin, Search, ShieldPlus, SlidersHorizontal, Sprout, UserRound } from 'lucide-react';
 import { MARKET_TICKER_ITEMS, PRODUCE_CATEGORIES, RWANDA_DISTRICTS } from '../data/mockData';
 
-export default function ProduceMarket({ listings = [], selectedCategory, setSelectedCategory, onOrderClick, searchQuery = '', setSearchQuery, selectedDistrict = 'All Rwanda', setSelectedDistrict, onOpenDisease }) {
+export default function ProduceMarket({ listings = [], selectedCategory, setSelectedCategory, onOrderClick, searchQuery = '', setSearchQuery, selectedDistrict = 'All Rwanda', setSelectedDistrict, onOpenDisease, onManageAccount }) {
   const [activeSort, setActiveSort] = useState('latest');
   const sortedListings = useMemo(() => listings.filter((item) => {
     const term = searchQuery.trim().toLowerCase();
@@ -18,7 +18,7 @@ export default function ProduceMarket({ listings = [], selectedCategory, setSele
   }), [listings, searchQuery, selectedCategory, selectedDistrict, activeSort]);
 
   return (
-    <div className="mx-auto max-w-[1400px] space-y-8">
+    <div className="mx-auto max-w-[1000px] space-y-7">
       <section className="overflow-hidden rounded-3xl bg-[#17291e] text-white">
         <div className="grid gap-8 px-6 py-8 sm:px-9 sm:py-10 lg:grid-cols-[1fr_auto] lg:items-end">
           <div className="max-w-2xl">
@@ -26,7 +26,8 @@ export default function ProduceMarket({ listings = [], selectedCategory, setSele
             <h1 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">The harvest market</h1>
             <p className="mt-3 max-w-xl text-sm leading-6 text-white/70 sm:text-base">Browse available harvests, compare farm-gate prices, and request a quote directly from local producers and cooperatives.</p>
           </div>
-          <div className="flex gap-3 text-sm">
+          <div className="flex flex-wrap items-center gap-3 text-sm">
+            <button type="button" onClick={onManageAccount} className="inline-flex items-center gap-2 rounded-xl border border-white/15 bg-white/[0.06] px-4 py-3 text-sm font-semibold text-white transition hover:border-[#c2d19e]/50 hover:bg-white/10"><UserRound size={16} className="text-[#c2d19e]" /> Manage account</button>
             <div className="rounded-xl border border-white/10 bg-white/[0.06] px-4 py-3"><div className="text-lg font-semibold">{listings.length}</div><div className="mt-0.5 text-xs text-white/60">Listings</div></div>
             <div className="rounded-xl border border-white/10 bg-white/[0.06] px-4 py-3"><div className="text-lg font-semibold">30</div><div className="mt-0.5 text-xs text-white/60">Districts</div></div>
           </div>
@@ -74,9 +75,9 @@ export default function ProduceMarket({ listings = [], selectedCategory, setSele
 
         {sortedListings.length === 0 ? <div className="mt-6 rounded-2xl border border-dashed border-black/20 bg-white px-5 py-14 text-center"><h3 className="font-semibold">No listings match these filters</h3><p className="mt-2 text-sm text-black/55">Try another search or district.</p></div> : <div className="mt-6 grid gap-5 sm:grid-cols-2 xl:grid-cols-3">{sortedListings.map((produce) => (
           <article key={produce.id} className="group overflow-hidden rounded-2xl border border-black/8 bg-white transition duration-200 hover:-translate-y-1 hover:border-[#6B8E23]/35 hover:shadow-lg">
-            <div className="relative h-52 overflow-hidden bg-[#edf0e6]"><img src={produce.image} alt={produce.name} loading="lazy" className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]" /><span className="absolute left-3 top-3 inline-flex items-center gap-1.5 rounded-full bg-white/95 px-2.5 py-1.5 text-xs font-medium text-black"><MapPin size={12} />{produce.district}</span><span className="absolute bottom-3 right-3 rounded-full bg-[#17291e]/90 px-2.5 py-1.5 text-xs font-semibold text-white">{produce.quantityAvailable} {produce.unit} available</span></div>
+            <div className="relative h-44 overflow-hidden bg-[#edf0e6]"><img src={produce.image} alt={produce.name} loading="lazy" className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]" /><span className="absolute left-3 top-3 inline-flex items-center gap-1.5 rounded-full bg-white/95 px-2.5 py-1.5 text-xs font-medium text-black"><MapPin size={12} />{produce.district}</span><span className="absolute bottom-3 right-3 rounded-full bg-[#17291e]/90 px-2.5 py-1.5 text-xs font-semibold text-white">{produce.quantityAvailable} {produce.unit} available</span></div>
             <div className="p-5"><div className="flex items-start justify-between gap-2"><div><h3 className="font-semibold leading-5">{produce.name}</h3><p className="mt-1 text-xs text-black/50">{produce.kinyarwandaName}</p></div>{produce.verified && <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-[#228B22]/10 px-2 py-1 text-[10px] font-semibold text-[#246d22]"><BadgeCheck size={13} /> Verified</span>}</div>
-              <p className="mt-4 truncate text-xs text-black/55">{produce.cooperative}</p><div className="mt-4 flex items-end justify-between border-t border-black/8 pt-4"><div><div className="text-lg font-semibold">{produce.pricePerKg.toLocaleString()} <span className="text-sm font-medium">RWF</span></div><div className="text-xs text-black/50">per kg · Min. {produce.minOrder}</div></div><button type="button" onClick={() => onOrderClick(produce)} className="rounded-lg bg-[#6B8E23] px-3.5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#556B2F]">Request quote</button></div>
+              <p className="mt-4 truncate text-xs text-black/55">{produce.cooperative}</p><div className="mt-4 flex items-end justify-between border-t border-black/8 pt-4"><div><div className="text-lg font-semibold">{produce.pricePerKg.toLocaleString()} <span className="text-sm font-medium">RWF</span></div><div className="text-xs text-black/50">per kg · Min. {produce.minOrder}</div></div><button type="button" onClick={() => onOrderClick(produce)} className="rounded-lg bg-[#6B8E23] px-3.5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#556B2F]">View details</button></div>
             </div>
           </article>
         ))}</div>}

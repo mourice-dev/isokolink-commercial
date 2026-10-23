@@ -4,18 +4,18 @@ import { Sprout, Users, CheckCircle, ArrowRight } from 'lucide-react';
 export default function FarmiqHero({ onExploreProduce, onJoinCommunity, onOpenDiseaseHub }) {
   return (
     <section className="relative bg-[#0a3721] text-white overflow-hidden py-10 md:py-16 px-6 sm:px-12 md:px-16 lg:px-20 farmiq-leaf-pattern">
-      <div className="max-w-[1400px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-center">
+      <div className="max-w-[1000px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-center">
         {/* ================= LEFT COLUMN: HEADLINE & STATS (Exact matching image) ================= */}
         <div className="lg:col-span-6 space-y-7">
           {/* Main Display Headline in Söhne */}
-          <h1 className="text-5xl sm:text-6xl md:text-7xl font-extrabold tracking-tight text-white leading-[1.08] font-sans">
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-white leading-[1.08] font-sans">
             Organic Fresh <br />
             Produce Grown <br />
             With Care
           </h1>
 
           {/* Subtitle */}
-          <p className="text-base sm:text-lg text-emerald-100/80 max-w-xl font-normal leading-relaxed">
+          <p className="text-sm sm:text-base text-emerald-100/80 max-w-xl font-normal leading-relaxed">
             Fresh, naturally grown organic produce from Farmiq ensures healthy living, trusted
             quality, and daily nutrition.
           </p>

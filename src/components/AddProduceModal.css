@@ -1,0 +1,91 @@
+.harvest-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  overflow-y: auto;
+  background: rgba(5, 29, 17, .68);
+  backdrop-filter: blur(5px);
+}
+
+.harvest-modal {
+  box-sizing: border-box;
+  width: min(760px, 100%);
+  max-height: min(90vh, 900px);
+  overflow-y: auto;
+  border: 1px solid #e5eadf;
+  border-radius: 20px;
+  background: #fff;
+  color: #1d2b20;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, .24);
+  scrollbar-width: thin;
+  scrollbar-color: #cbd8bd transparent;
+}
+
+.harvest-header {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 26px 32px 24px;
+  border-bottom: 1px solid #edf0e9;
+  background: linear-gradient(115deg, #f6f9f1 0%, #fff 78%);
+}
+
+.harvest-heading { display: flex; align-items: flex-start; gap: 15px; }
+.harvest-icon { display: grid; flex: 0 0 46px; height: 46px; place-items: center; border-radius: 14px; background: #e8f1dd; color: #587b26; }
+.harvest-modal .modal-title h3 { margin: 3px 0 5px; color: #173a24; font-size: clamp(1.35rem, 3vw, 1.7rem); font-weight: 750; letter-spacing: -.035em; }
+.harvest-modal .modal-title p { margin: 0; color: #68756a; font-size: .92rem; line-height: 1.5; }
+.harvest-eyebrow { color: #668437; font-size: .68rem; font-weight: 800; letter-spacing: .12em; }
+.harvest-modal .btn-close-modal { display: grid; flex: 0 0 38px; width: 38px; height: 38px; place-items: center; border: 1px solid #e4e9df; border-radius: 11px; background: #fff; color: #536153; transition: background .18s, color .18s; }
+.harvest-modal .btn-close-modal:hover { background: #f0f5e9; color: #31531e; }
+
+.harvest-form { padding: 8px 32px 30px; }
+.harvest-section-heading { display: flex; align-items: center; gap: 12px; margin: 23px 0 15px; }
+.harvest-section-heading > span { display: grid; flex: 0 0 31px; height: 31px; place-items: center; border: 1px solid #dce8cf; border-radius: 10px; background: #f3f7ed; color: #648326; font-size: .72rem; font-weight: 800; }
+.harvest-section-heading h4 { margin: 0 0 2px; color: #243a29; font-size: .98rem; font-weight: 750; }
+.harvest-section-heading p { margin: 0; color: #7b867b; font-size: .78rem; }
+.harvest-form .form-grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 15px 18px; margin-bottom: 14px; }
+.harvest-form .form-group { min-width: 0; margin: 0; }
+.harvest-form .form-group label { display: block; margin: 0 0 7px; color: #344638; font-size: .8rem; font-weight: 650; }
+.harvest-form input:not([type="checkbox"]), .harvest-form select, .harvest-form textarea { box-sizing: border-box; width: 100%; min-height: 44px; padding: 10px 12px; border: 1px solid #dce3d8; border-radius: 10px; background: #fff; color: #26362a; font-size: .88rem; outline: none; transition: border-color .18s, box-shadow .18s; }
+.harvest-form textarea { min-height: 92px; resize: vertical; }
+.harvest-form input::placeholder, .harvest-form textarea::placeholder { color: #a0aaa0; }
+.harvest-form input:not([type="checkbox"]):focus, .harvest-form select:focus, .harvest-form textarea:focus { border-color: #7e9b4c; box-shadow: 0 0 0 3px rgba(107, 142, 35, .12); }
+.harvest-form .form-group > div { display: flex; gap: 8px !important; }
+.harvest-form .form-group > div select { flex: 0 0 115px; width: auto !important; }
+.harvest-form input[type="checkbox"] { flex: 0 0 18px; margin: 2px 0 0; }
+.harvest-form label[for="rab-cert"] { line-height: 1.5; }
+.harvest-photo-field { display: grid; grid-template-columns: minmax(0, 1fr) minmax(220px, .85fr); gap: 18px; align-items: center; margin: 8px 0 4px; padding: 16px; border: 1px solid #e5eadf; border-radius: 13px; background: #fafbf8; }
+.harvest-photo-copy > label:first-child { display: block; margin-bottom: 5px; color: #344638; font-size: .8rem; font-weight: 700; }
+.harvest-photo-copy > p { margin: 0 0 12px; color: #748074; font-size: .78rem; line-height: 1.5; }
+.harvest-photo-input { display: none !important; }
+.harvest-photo-button { display: inline-flex; min-height: 38px; align-items: center; justify-content: center; gap: 8px; padding: 0 13px; border: 1px solid #d6e1cb; border-radius: 9px; background: #fff; color: #4f7125; font-size: .8rem; font-weight: 700; cursor: pointer; transition: background .18s, border-color .18s; }
+.harvest-photo-button:hover { border-color: #9bb47a; background: #f2f7eb; }
+.harvest-photo-hint, .harvest-photo-error { display: block; margin-top: 8px; color: #879187; font-size: .7rem; }
+.harvest-photo-error { color: #b42318; }
+.harvest-photo-preview { position: relative; height: 142px; overflow: hidden; border: 1px solid #e2e8dc; border-radius: 11px; background: #edf1e8; }
+.harvest-photo-preview > img { width: 100%; height: 100%; object-fit: cover; }
+.harvest-photo-empty { display: flex; height: 100%; align-items: center; justify-content: center; flex-direction: column; gap: 7px; color: #75836a; font-size: .78rem; }
+.harvest-preview-badge { position: absolute; right: 8px; bottom: 8px; display: inline-flex; align-items: center; gap: 5px; padding: 5px 8px; border-radius: 7px; background: rgba(255,255,255,.94); color: #425a2c; font-size: .67rem; font-weight: 700; }
+.harvest-submit-row { display: flex; align-items: center; justify-content: space-between; gap: 18px; margin-top: 22px; padding-top: 19px; border-top: 1px solid #edf0e9; }
+.harvest-submit-row p { margin: 0; color: #7b867b; font-size: .78rem; }
+.harvest-form .btn-submit-form { min-height: 46px; padding: 0 20px; border: 0; border-radius: 11px; background: #587b26; color: #fff; font-size: .88rem; font-weight: 700; box-shadow: 0 5px 12px rgba(88, 123, 38, .18); transition: background .18s, transform .18s, box-shadow .18s; }
+.harvest-form .btn-submit-form:hover { transform: translateY(-1px); background: #46651d; box-shadow: 0 8px 18px rgba(88, 123, 38, .24); }
+
+@media (max-width: 600px) {
+  .harvest-overlay { align-items: end; padding: 0; }
+  .harvest-modal { width: 100%; max-height: 94vh; border-radius: 20px 20px 0 0; }
+  .harvest-header { padding: 21px 20px 18px; }
+  .harvest-form { padding: 5px 20px 24px; }
+  .harvest-form .form-grid-2 { grid-template-columns: 1fr; gap: 13px; }
+  .harvest-photo-field { grid-template-columns: 1fr; }
+  .harvest-photo-preview { height: 180px; }
+  .harvest-submit-row { align-items: stretch; flex-direction: column; }
+  .harvest-submit-row .btn-submit-form { width: 100%; }
+}
