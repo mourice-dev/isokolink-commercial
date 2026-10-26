@@ -27,6 +27,22 @@ export default function SocialNewsFeed({ onNavigateTab, user }) {
   const [postStatus, setPostStatus] = useState('');
 
   useEffect(() => {
+    if (!activeChat || !user) return undefined;
+    let mounted = true;
+    apiFetch(`/api/community/messages/${encodeURIComponent(activeChat.id)}`)
+      .then(async (response) => {
+        if (!response.ok) throw new Error('Conversation unavailable');
+        return response.json();
+      })
+      .then((messages) => {
+        if (!mounted || !Array.isArray(messages)) return;
+        setChatMessages((current) => [...current.filter((message) => message.contact !== activeChat.id), ...messages]);
+      })
+      .catch(() => {});
+    return () => { mounted = false; };
+  }, [activeChat, user]);
+
+  useEffect(() => {
     let mounted = true;
     apiFetch('/api/community/posts').then(async (response) => {
       if (!response.ok) throw new Error('Community posts unavailable');
@@ -56,21 +72,65 @@ export default function SocialNewsFeed({ onNavigateTab, user }) {
     return post.postType === 'Idea or quote';
   });
 
-  const toggleLike = (postId) => setPosts((current) => current.map((post) => {
-    if (post.id !== postId) return post;
-    const hasLiked = !post.hasLiked;
-    return { ...post, hasLiked, likes: Math.max(0, post.likes + (hasLiked ? 1 : -1)) };
-  }));
+  const toggleLike = async (postId) => {
+    if (!user) {
+      setPostStatus('Please sign in to react to community posts.');
+      return;
+    }
+    setPosts((current) => current.map((post) => {
+      if (post.id !== postId) return post;
+      const hasLiked = !post.hasLiked;
+      return { ...post, hasLiked, likes: Math.max(0, (post.likes || 0) + (hasLiked ? 1 : -1)) };
+    }));
+    try {
+      const response = await apiFetch(`/api/community/posts/${encodeURIComponent(postId)}/like`, { method: 'POST' });
+      if (!response.ok) throw new Error('Reaction could not be saved');
+      const result = await response.json();
+      setPosts((current) => current.map((post) => post.id === postId ? { ...post, ...result } : post));
+    } catch {
+      setPosts((current) => current.map((post) => {
+        if (post.id !== postId) return post;
+        return { ...post, hasLiked: !post.hasLiked, likes: Math.max(0, (post.likes || 0) + (post.hasLiked ? 1 : -1)) };
+      }));
+      setPostStatus('Your reaction could not be saved. Please try again.');
+    }
+  };
 
-  const addComment = (event, postId) => {
+  const addComment = async (event, postId) => {
     event.preventDefault();
-    if (!commentText.trim()) return;
+    const text = commentText.trim();
+    if (!text) return;
+    if (!user) {
+      setPostStatus('Please sign in to comment on community posts.');
+      return;
+    }
+    const temporaryId = `comment-${Date.now()}`;
     setPosts((current) => current.map((post) => post.id !== postId ? post : {
       ...post,
       commentsCount: (post.commentsCount || 0) + 1,
-      comments: [...(post.comments || []), { id: `comment-${Date.now()}`, userName: user?.fullName || 'You', text: commentText.trim(), time: 'Just now' }],
+      comments: [...(post.comments || []), { id: temporaryId, userName: user.fullName || 'You', text, time: 'Just now' }],
     }));
     setCommentText('');
+    try {
+      const response = await apiFetch(`/api/community/posts/${encodeURIComponent(postId)}/comments`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text }),
+      });
+      if (!response.ok) throw new Error('Comment could not be saved');
+      const comment = await response.json();
+      setPosts((current) => current.map((post) => post.id !== postId ? post : {
+        ...post,
+        comments: (post.comments || []).map((entry) => entry.id === temporaryId ? comment : entry),
+      }));
+    } catch {
+      setPosts((current) => current.map((post) => post.id !== postId ? post : {
+        ...post,
+        commentsCount: Math.max(0, (post.commentsCount || 1) - 1),
+        comments: (post.comments || []).filter((entry) => entry.id !== temporaryId),
+      }));
+      setPostStatus('Your comment could not be saved. Please try again.');
+    }
   };
 
   const publishPost = async (event) => {
@@ -102,11 +162,27 @@ export default function SocialNewsFeed({ onNavigateTab, user }) {
     }
   };
 
-  const sendChat = (event) => {
+  const sendChat = async (event) => {
     event.preventDefault();
-    if (!chatDraft.trim() || !activeChat) return;
-    setChatMessages((current) => [...current, { id: Date.now(), contact: activeChat.id, text: chatDraft.trim() }]);
-    setChatDraft('');
+    const text = chatDraft.trim();
+    if (!text || !activeChat) return;
+    if (!user) {
+      setPostStatus('Please sign in to send a community message.');
+      return;
+    }
+    try {
+      const response = await apiFetch('/api/community/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contact: activeChat.id, text }),
+      });
+      if (!response.ok) throw new Error('Message could not be sent');
+      const message = await response.json();
+      setChatMessages((current) => [...current, message]);
+      setChatDraft('');
+    } catch {
+      setPostStatus('Your message could not be sent. Please try again.');
+    }
   };
 
   const contacts = SIDEBAR_CONTACTS.filter((contact) => !contact.isAi).slice(0, 5);

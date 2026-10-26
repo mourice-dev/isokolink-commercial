@@ -6,6 +6,7 @@ import session from 'express-session';
 import connectPgSimple from 'connect-pg-simple';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { randomUUID } from 'node:crypto';
 import { INITIAL_PRODUCE_LISTINGS } from './data/mockData.js';
 
 const { Pool } = pg;
@@ -66,7 +67,7 @@ function createSession(req, user) {
   return new Promise((resolveSession, rejectSession) => {
     req.session.regenerate((error) => {
       if (error) return rejectSession(error);
-      req.session.user = { id: user.id, role: user.role, email: user.email };
+      req.session.user = { id: user.id, role: user.role, email: user.email, fullName: user.fullName || user.full_name || '', avatarUrl: user.avatarUrl || user.avatar_url || '' };
       req.session.save((saveError) => saveError ? rejectSession(saveError) : resolveSession());
     });
   });
@@ -128,6 +129,18 @@ async function initializeDatabase() {
       id TEXT PRIMARY KEY, author_name TEXT NOT NULL DEFAULT '', post_type TEXT NOT NULL DEFAULT '', content TEXT NOT NULL DEFAULT '',
       details JSONB NOT NULL DEFAULT '{}'::jsonb, created_at TIMESTAMPTZ NOT NULL DEFAULT now()
     );
+    CREATE TABLE IF NOT EXISTS community_post_likes (
+      post_id TEXT NOT NULL, user_id BIGINT NOT NULL, created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+      PRIMARY KEY (post_id, user_id)
+    );
+    CREATE TABLE IF NOT EXISTS community_comments (
+      id TEXT PRIMARY KEY, post_id TEXT NOT NULL, user_id BIGINT NOT NULL, user_name TEXT NOT NULL DEFAULT '',
+      user_avatar TEXT NOT NULL DEFAULT '', text TEXT NOT NULL, created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    );
+    CREATE TABLE IF NOT EXISTS community_messages (
+      id BIGSERIAL PRIMARY KEY, user_id BIGINT NOT NULL, contact_id TEXT NOT NULL, text TEXT NOT NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    );
     CREATE TABLE IF NOT EXISTS contact_messages (
       id BIGSERIAL PRIMARY KEY, name TEXT NOT NULL, email TEXT NOT NULL, message TEXT NOT NULL, created_at TIMESTAMPTZ NOT NULL DEFAULT now()
     );
@@ -161,7 +174,7 @@ app.post('/api/auth/register', async (req, res) => {
     const passwordHash = await bcrypt.hash(password, 12);
     const result = await pool.query(`INSERT INTO accounts(role,email,full_name,phone,district,details,password_hash)
       VALUES($1,$2,$3,$4,$5,$6::jsonb,$7) ON CONFLICT(role,email) DO NOTHING
-      RETURNING id,role,email`, [role, normalizedEmail, String(fullName).trim(), String(phone).trim(), String(district).trim(), JSON.stringify(details), passwordHash]);
+      RETURNING id,role,email,full_name AS "fullName"`, [role, normalizedEmail, String(fullName).trim(), String(phone).trim(), String(district).trim(), JSON.stringify(details), passwordHash]);
     if (!result.rowCount) {
       const existing = await pool.query('SELECT password_hash FROM accounts WHERE role=$1 AND email=$2', [role, normalizedEmail]);
       const error = existing.rows[0]?.password_hash
@@ -179,7 +192,7 @@ app.post('/api/auth/login', throttleLogin, async (req, res) => {
   const password = req.body?.password;
   if (!['farmer', 'buyer'].includes(role) || !email || typeof password !== 'string') return res.status(400).json({ error: 'Enter your account type, email, and password.' });
   try {
-    const result = await pool.query('SELECT id,role,email,password_hash FROM accounts WHERE role=$1 AND email=$2', [role, email]);
+    const result = await pool.query('SELECT id,role,email,password_hash,full_name AS "fullName",avatar_url AS "avatarUrl" FROM accounts WHERE role=$1 AND email=$2', [role, email]);
     const account = result.rows[0];
     if (!account?.password_hash || !(await bcrypt.compare(password, account.password_hash))) {
       recordFailedLogin(req);
@@ -287,17 +300,105 @@ app.get('/api/buyer/dashboard', requireRole('buyer'), async (req, res) => {
     res.json({ account, orders: orders.rows, orderCount: orders.rowCount });
   } catch { res.status(500).json({ error: 'Could not load buyer dashboard.' }); }
 });
-app.get('/api/community/posts', async (_req, res) => {
-  try { const result = await pool.query('SELECT details FROM community_posts ORDER BY created_at DESC'); res.json(result.rows.map((row) => row.details)); }
+app.get('/api/community/posts', async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT p.details,
+        (SELECT count(*)::int FROM community_post_likes l WHERE l.post_id=p.id) AS likes,
+        (SELECT count(*)::int FROM community_comments c WHERE c.post_id=p.id) AS comments_count,
+        EXISTS(SELECT 1 FROM community_post_likes l WHERE l.post_id=p.id AND l.user_id=$1) AS has_liked
+      FROM community_posts p ORDER BY p.created_at DESC`, [req.session.user?.id || 0]);
+    const postIds = result.rows.map((row) => row.details.id).filter(Boolean);
+    const comments = postIds.length ? await pool.query(`
+      SELECT id, post_id AS "postId", user_name AS "userName", user_avatar AS "userAvatar", text,
+        to_char(created_at, 'YYYY-MM-DD"T"HH24:MI:SS"Z"') AS time
+      FROM community_comments WHERE post_id=ANY($1::text[]) ORDER BY created_at ASC`, [postIds]) : { rows: [] };
+    const commentsByPost = new Map();
+    for (const comment of comments.rows) {
+      const current = commentsByPost.get(comment.postId) || [];
+      current.push(comment);
+      commentsByPost.set(comment.postId, current);
+    }
+    res.json(result.rows.map((row) => ({
+      ...row.details,
+      likes: row.likes,
+      commentsCount: row.comments_count,
+      hasLiked: row.has_liked,
+      comments: commentsByPost.get(row.details.id) || [],
+    })));
+  }
   catch { res.status(500).json({ error: 'Could not load community posts.' }); }
 });
 app.post('/api/community/posts', async (req, res) => {
+  if (!req.session.user) return res.status(401).json({ error: 'Please log in to share a community post.' });
   const post = req.body;
-  if (!post?.id || !post?.content) return res.status(400).json({ error: 'Post content is required.' });
+  const content = String(post?.content || '').trim();
+  const postType = String(post?.postType || 'Idea or quote');
+  if (!content) return res.status(400).json({ error: 'Post content is required.' });
+  if (content.length > 2000) return res.status(400).json({ error: 'Post content must be 2000 characters or fewer.' });
+  if (!['Idea or quote', 'New produce', 'Farm technology'].includes(postType)) return res.status(400).json({ error: 'Invalid post category.' });
   try {
-    await pool.query('INSERT INTO community_posts(id,author_name,post_type,content,details) VALUES($1,$2,$3,$4,$5::jsonb) ON CONFLICT(id) DO NOTHING', [String(post.id), post.authorName || '', post.postType || '', post.content, JSON.stringify(post)]);
-    res.status(201).json(post);
+    const savedPost = {
+      ...post,
+      id: String(post.id || `community-${randomUUID()}`),
+      authorName: req.session.user.fullName || post.authorName || 'Community member',
+      postType,
+      content,
+      timeAgo: 'Just now',
+      likes: 0,
+      commentsCount: 0,
+      comments: [],
+    };
+    await pool.query('INSERT INTO community_posts(id,author_name,post_type,content,details) VALUES($1,$2,$3,$4,$5::jsonb) ON CONFLICT(id) DO NOTHING', [savedPost.id, savedPost.authorName, savedPost.postType, savedPost.content, JSON.stringify(savedPost)]);
+    res.status(201).json(savedPost);
   } catch { res.status(500).json({ error: 'Could not save post.' }); }
+});
+app.post('/api/community/posts/:postId/like', requireAuth, async (req, res) => {
+  const postId = String(req.params.postId);
+  try {
+    const existing = await pool.query('SELECT 1 FROM community_post_likes WHERE post_id=$1 AND user_id=$2', [postId, req.auth.id]);
+    if (existing.rowCount) await pool.query('DELETE FROM community_post_likes WHERE post_id=$1 AND user_id=$2', [postId, req.auth.id]);
+    else await pool.query('INSERT INTO community_post_likes(post_id,user_id) VALUES($1,$2)', [postId, req.auth.id]);
+    const result = await pool.query('SELECT count(*)::int AS likes FROM community_post_likes WHERE post_id=$1', [postId]);
+    res.json({ hasLiked: !existing.rowCount, likes: result.rows[0].likes });
+  } catch { res.status(500).json({ error: 'Could not update the post reaction.' }); }
+});
+app.post('/api/community/posts/:postId/comments', requireAuth, async (req, res) => {
+  const text = String(req.body?.text || '').trim();
+  if (!text) return res.status(400).json({ error: 'Comment text is required.' });
+  if (text.length > 1000) return res.status(400).json({ error: 'Comments must be 1000 characters or fewer.' });
+  try {
+    const comment = {
+      id: `comment-${randomUUID()}`,
+      postId: String(req.params.postId),
+      userName: req.auth.fullName || 'Community member',
+      userAvatar: req.auth.avatarUrl || '',
+      text,
+      time: new Date().toISOString(),
+    };
+    await pool.query('INSERT INTO community_comments(id,post_id,user_id,user_name,user_avatar,text) VALUES($1,$2,$3,$4,$5,$6)', [comment.id, comment.postId, req.auth.id, comment.userName, comment.userAvatar, comment.text]);
+    res.status(201).json(comment);
+  } catch { res.status(500).json({ error: 'Could not save the comment.' }); }
+});
+app.get('/api/community/messages/:contactId', requireAuth, async (req, res) => {
+  try {
+    const result = await pool.query(`SELECT id, contact_id AS contact, text,
+      to_char(created_at, 'YYYY-MM-DD"T"HH24:MI:SS"Z"') AS "createdAt"
+      FROM community_messages WHERE user_id=$1 AND contact_id=$2 ORDER BY created_at ASC`, [req.auth.id, String(req.params.contactId)]);
+    res.json(result.rows);
+  } catch { res.status(500).json({ error: 'Could not load this conversation.' }); }
+});
+app.post('/api/community/messages', requireAuth, async (req, res) => {
+  const contact = String(req.body?.contact || '').trim();
+  const text = String(req.body?.text || '').trim();
+  if (!contact || !text) return res.status(400).json({ error: 'A contact and message are required.' });
+  if (text.length > 2000) return res.status(400).json({ error: 'Messages must be 2000 characters or fewer.' });
+  try {
+    const result = await pool.query(`INSERT INTO community_messages(user_id,contact_id,text)
+      VALUES($1,$2,$3) RETURNING id, contact_id AS contact, text,
+      to_char(created_at, 'YYYY-MM-DD"T"HH24:MI:SS"Z"') AS "createdAt"`, [req.auth.id, contact, text]);
+    res.status(201).json(result.rows[0]);
+  } catch { res.status(500).json({ error: 'Could not send this message.' }); }
 });
 
 initializeDatabase().then(() => app.listen(port, () => console.log(`IsokoLink API listening on ${port}`))).catch((error) => { console.error(`Database initialization failed: ${error.message}`); process.exit(1); });

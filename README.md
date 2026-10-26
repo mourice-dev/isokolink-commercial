@@ -19,6 +19,10 @@ Each folder has its own package manifest, so install dependencies from `frontend
 
 The backend creates its tables on startup and inserts the initial marketplace listings when the products table is empty. PostgreSQL TLS is enabled by the supplied Neon connection URL's `sslmode=require` parameter.
 
+## Community
+
+The community feed is available at `/community`. Visitors can browse posts, while signed-in users can publish posts, react, comment, and keep direct-message history with the listed community contacts. Community activity is persisted in PostgreSQL; the client keeps a local copy so the feed remains usable when the API is temporarily unavailable.
+
 ## Accounts and dashboards
 
 Register at `/register/farmer` or `/register/buyer`, then sign in at `/login`. The API hashes passwords with bcrypt and stores login sessions in PostgreSQL. Set a long random `SESSION_SECRET` in `backend/.env`; production also requires `NODE_ENV=production` and the exact `FRONTEND_ORIGIN` allowlist. Farmer and buyer dashboards and their data APIs enforce the account role on the server.
