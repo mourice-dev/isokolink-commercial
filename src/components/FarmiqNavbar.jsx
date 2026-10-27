@@ -84,9 +84,6 @@ export default function FarmiqNavbar({ activeTab, setActiveTab, onOpenSellModal,
             <ShoppingBag size={17} />
             <span className="absolute -right-1 -top-1 flex h-[17px] min-w-[17px] items-center justify-center rounded-full border-2 border-[#17291e] bg-[#9eb65b] px-0.5 text-[9px] font-bold leading-none text-[#17291e]">{cartCount}</span>
           </button>
-          <button type="button" onClick={() => handleNavClick('profile')} className="mr-1 inline-flex shrink-0 items-center gap-1 rounded-lg border border-[#c2d19e]/40 px-2 py-1.5 text-[11px] font-semibold text-[#e6edda] transition hover:bg-white/10 sm:px-2.5 sm:text-xs">
-            <UserPlus size={14} className="text-[#c2d19e]" /> Sign up
-          </button>
           <button
             type="button"
             onClick={() => setNotificationsOpen((open) => !open)}
@@ -106,6 +103,9 @@ export default function FarmiqNavbar({ activeTab, setActiveTab, onOpenSellModal,
               <button type="button" onClick={() => { onOpenCart?.(); setNotificationsOpen(false); }} className="flex w-full items-center justify-between border-t border-black/8 px-4 py-3 text-left text-sm font-semibold text-[#556B2F] transition-colors hover:bg-[#f4f6ee]"><span className="inline-flex items-center gap-2"><ShoppingBag size={15} /> View your basket</span><span className="rounded-full bg-[#e8eddc] px-2 py-0.5 text-xs">{cartCount}</span></button>
             </div>
           )}
+          <button type="button" onClick={() => handleNavClick('profile')} className="ml-1 inline-flex shrink-0 items-center gap-1 rounded-lg border border-[#c2d19e]/40 px-2 py-1.5 text-[11px] font-semibold text-[#e6edda] transition hover:bg-white/10 sm:ml-2 sm:px-2.5 sm:text-xs">
+            <UserPlus size={14} className="text-[#c2d19e]" /> Sign up
+          </button>
           <button
             type="button"
             onClick={() => setMobileMenuOpen((open) => !open)}
