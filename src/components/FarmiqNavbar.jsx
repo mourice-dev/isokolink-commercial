@@ -62,7 +62,7 @@ export default function FarmiqNavbar({ activeTab, setActiveTab, onOpenSellModal,
           <button
             type="button"
             onClick={onOpenSellModal}
-            className="hidden cursor-pointer items-center gap-1 rounded-lg border border-white/25 px-2 py-1.5 text-[11px] font-semibold text-white/90 transition-all hover:border-[#9eb65b] hover:bg-white/5 sm:inline-flex"
+            className="hidden cursor-pointer items-center gap-1 whitespace-nowrap rounded-lg border border-white/25 px-2 py-1.5 text-[11px] font-semibold text-white/90 transition-all hover:border-[#9eb65b] hover:bg-white/5 sm:inline-flex"
           >
             <PlusCircle size={15} className="text-[#b3c773]" />
             <span>Sell produce</span>
@@ -70,7 +70,7 @@ export default function FarmiqNavbar({ activeTab, setActiveTab, onOpenSellModal,
           <button
             type="button"
             onClick={() => handleNavClick('market')}
-            className="cursor-pointer rounded-lg bg-[#6B8E23] px-2.5 py-2 text-[11px] font-semibold text-white shadow-sm transition-all hover:bg-[#556B2F] sm:px-3 sm:text-xs"
+            className="cursor-pointer whitespace-nowrap rounded-lg bg-[#6B8E23] px-2.5 py-2 text-[11px] font-semibold text-white shadow-sm transition-all hover:bg-[#556B2F] sm:px-3 sm:text-xs"
           >
             Get produce
           </button>
