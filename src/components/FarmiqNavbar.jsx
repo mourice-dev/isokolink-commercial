@@ -29,9 +29,6 @@ export default function FarmiqNavbar({ activeTab, setActiveTab, onOpenSellModal,
     <header className="sticky top-0 z-50 border-b border-white/10 bg-[#17291e] text-white shadow-[0_4px_18px_rgba(0,0,0,0.16)]">
       <div className="page-gutter mx-auto flex max-w-[1080px] items-center justify-between gap-3 py-2 xl:grid xl:grid-cols-[1fr_auto_1fr]">
         <div className="flex min-w-0 shrink-0 items-center gap-3 xl:justify-self-start">
-        <button type="button" onClick={() => handleNavClick('profile')} className="inline-flex shrink-0 items-center gap-1 rounded-lg border border-[#c2d19e]/40 px-2 py-1.5 text-[11px] font-semibold text-[#e6edda] transition hover:bg-white/10 sm:px-2.5 sm:text-xs">
-          <UserPlus size={14} className="text-[#c2d19e]" /> Sign up
-        </button>
         <button
           type="button"
           onClick={() => handleNavClick('home')}
@@ -62,6 +59,9 @@ export default function FarmiqNavbar({ activeTab, setActiveTab, onOpenSellModal,
         </nav>
 
         <div className="relative ml-auto flex shrink-0 items-center gap-2 sm:gap-3 xl:ml-0 xl:justify-self-end">
+          <button type="button" onClick={() => handleNavClick('profile')} className="inline-flex shrink-0 items-center gap-1 rounded-lg border border-[#c2d19e]/40 px-2 py-1.5 text-[11px] font-semibold text-[#e6edda] transition hover:bg-white/10 sm:px-2.5 sm:text-xs">
+            <UserPlus size={14} className="text-[#c2d19e]" /> Sign up
+          </button>
           <button
             type="button"
             onClick={onOpenSellModal}
