@@ -59,9 +59,6 @@ export default function FarmiqNavbar({ activeTab, setActiveTab, onOpenSellModal,
         </nav>
 
         <div className="relative ml-auto flex shrink-0 items-center gap-2 sm:gap-3 xl:ml-0 xl:justify-self-end">
-          <button type="button" onClick={() => handleNavClick('profile')} className="inline-flex shrink-0 items-center gap-1 rounded-lg border border-[#c2d19e]/40 px-2 py-1.5 text-[11px] font-semibold text-[#e6edda] transition hover:bg-white/10 sm:px-2.5 sm:text-xs">
-            <UserPlus size={14} className="text-[#c2d19e]" /> Sign up
-          </button>
           <button
             type="button"
             onClick={onOpenSellModal}
@@ -86,6 +83,9 @@ export default function FarmiqNavbar({ activeTab, setActiveTab, onOpenSellModal,
           >
             <ShoppingBag size={17} />
             <span className="absolute -right-1 -top-1 flex h-[17px] min-w-[17px] items-center justify-center rounded-full border-2 border-[#17291e] bg-[#9eb65b] px-0.5 text-[9px] font-bold leading-none text-[#17291e]">{cartCount}</span>
+          </button>
+          <button type="button" onClick={() => handleNavClick('profile')} className="mr-1 inline-flex shrink-0 items-center gap-1 rounded-lg border border-[#c2d19e]/40 px-2 py-1.5 text-[11px] font-semibold text-[#e6edda] transition hover:bg-white/10 sm:px-2.5 sm:text-xs">
+            <UserPlus size={14} className="text-[#c2d19e]" /> Sign up
           </button>
           <button
             type="button"
@@ -126,7 +126,6 @@ export default function FarmiqNavbar({ activeTab, setActiveTab, onOpenSellModal,
                 {label}
               </button>
             ))}
-            <button type="button" onClick={() => handleNavClick('profile')} className="flex items-center gap-2 rounded-lg border border-[#c2d19e]/35 bg-white/[0.03] px-3 py-2 text-left text-sm font-medium text-[#e6edda]"><UserPlus size={15}/> Sign up</button>
             {onOpenSellModal && (
               <button
                 type="button"
