@@ -49,8 +49,7 @@ export default function AddProduceModal({ isOpen, onClose, onAddProduce }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!formData.name || !formData.pricePerKg || !formData.quantityAvailable) {
-      alert('Please fill out the crop name, price, and available quantity.');
+    if (!formData.name.trim() || Number(formData.pricePerKg) <= 0 || Number(formData.quantityAvailable) <= 0) {
       return;
     }
 
@@ -172,6 +171,8 @@ export default function AddProduceModal({ isOpen, onClose, onAddProduce }) {
               <div style={{ display: 'flex', gap: '0.5rem' }}>
                 <input
                   type="number"
+                  min="0.01"
+                  step="any"
                   placeholder="e.g. 15"
                   value={formData.quantityAvailable}
                   onChange={(e) => setFormData({ ...formData, quantityAvailable: e.target.value })}
@@ -194,6 +195,8 @@ export default function AddProduceModal({ isOpen, onClose, onAddProduce }) {
               <label>Farm-Gate Price (RWF / Kg)</label>
               <input
                 type="number"
+                min="1"
+                step="1"
                 placeholder="e.g. 420"
                 value={formData.pricePerKg}
                 onChange={(e) => setFormData({ ...formData, pricePerKg: e.target.value })}

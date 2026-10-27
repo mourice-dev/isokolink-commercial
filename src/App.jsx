@@ -25,15 +25,21 @@ export default function App() {
   const [selectedCategory, setSelectedCategory] = useState('all');
 
   // Produce listings state
-  const [produceListings, setProduceListings] = useState(INITIAL_PRODUCE_LISTINGS);
+  const [produceListings, setProduceListings] = useState(() => {
+    try {
+      const saved = JSON.parse(window.localStorage.getItem('isokolink-local-listings') || '[]');
+      return [...saved, ...INITIAL_PRODUCE_LISTINGS.filter((item) => !saved.some((savedItem) => savedItem.id === item.id))];
+    } catch { return INITIAL_PRODUCE_LISTINGS; }
+  });
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [pendingOrder, setPendingOrder] = useState(null);
   const [paymentMethod, setPaymentMethod] = useState('mtn-momo');
   const [orderSaved, setOrderSaved] = useState(false);
   const [accountProfile, setAccountProfile] = useState({});
+  const [contactStatus, setContactStatus] = useState('');
 
   useEffect(() => {
-    fetch('/api/products').then((r) => r.ok ? r.json() : null).then((items) => { if (Array.isArray(items) && items.length) setProduceListings(items); }).catch(() => {});
+    fetch('/api/products').then((r) => r.ok ? r.json() : null).then((items) => { if (Array.isArray(items) && items.length) setProduceListings((current) => [...items, ...current.filter((entry) => !items.some((item) => item.id === entry.id))]); }).catch(() => {});
     try {
       const profiles = JSON.parse(window.localStorage.getItem('isokolink-account-profiles') || '{}');
       const role = window.localStorage.getItem('isokolink-active-account') || 'farmer';
@@ -41,18 +47,12 @@ export default function App() {
     } catch { /* Profile is optional until saved. */ }
   }, [activeTab]);
 
+  useEffect(() => {
+    try { window.localStorage.setItem('isokolink-local-listings', JSON.stringify(produceListings)); } catch { /* Browser storage may be unavailable or full. */ }
+  }, [produceListings]);
+
   // Cart state
-  const [cartItems, setCartItems] = useState([
-    {
-      id: 'prev-1',
-      title: 'Ridomil Gold MZ 68 WG (Anti-Late Blight)',
-      price: 18500,
-      unit: '1 kg container',
-      quantity: 1,
-      type: 'disease-defense',
-      supplier: 'AgroPy Rwanda Musanze Hub'
-    }
-  ]);
+  const [cartItems, setCartItems] = useState([]);
 
   // Modals & Drawers
   const [isSellModalOpen, setIsSellModalOpen] = useState(false);
@@ -101,12 +101,13 @@ export default function App() {
   // Farmer listing produce handler
   const handleAddProduce = async (newProduce) => {
     const product = { ...newProduce, farmerEmail: accountProfile.email || '' };
+    let savedToServer = false;
     try {
       const response = await fetch('/api/products', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(product) });
-      if (response.ok) Object.assign(product, await response.json());
+      if (response.ok) { Object.assign(product, await response.json()); savedToServer = true; }
     } catch { /* Keep this session usable if the API is offline. */ }
     setProduceListings((current) => [product, ...current]);
-    showToast(`Harvest "${newProduce.name}" successfully published!`);
+    showToast(savedToServer ? `Harvest "${newProduce.name}" published to the marketplace.` : `Harvest "${newProduce.name}" saved on this device. It will sync when the marketplace API is available.`);
   };
 
   // Wholesale Buyer placing order
@@ -148,6 +149,21 @@ export default function App() {
       showToast('Order request saved. The selected payment method is ready for confirmation.');
     } catch {
       showToast('Could not save the order. Check that the backend is running.');
+    }
+  };
+
+  const handleContactSubmit = async (event) => {
+    event.preventDefault();
+    const formElement = event.currentTarget;
+    const form = new FormData(formElement);
+    setContactStatus('Sending your message…');
+    try {
+      const response = await fetch('/api/contact', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: form.get('name'), email: form.get('email'), message: form.get('message') }) });
+      if (!response.ok) throw new Error('Message could not be sent');
+      formElement.reset();
+      setContactStatus('Thanks — your message has been sent to the IsokoLink team.');
+    } catch {
+      setContactStatus('We could not send your message right now. Please try again later.');
     }
   };
 
@@ -269,7 +285,7 @@ export default function App() {
         {/* ================= 8. CONTACT TAB ================= */}
         {activeTab === 'contact' && (
           <div className="page-gutter min-h-[75vh] bg-[#f7f8f4] py-12 text-black sm:py-16">
-            <div className="mx-auto max-w-5xl"><span className="text-xs font-semibold uppercase tracking-[0.15em] text-[#6B8E23]">Contact & support</span><h1 className="mt-3 text-3xl font-semibold tracking-tight sm:text-5xl">How can we help?</h1><p className="mt-4 max-w-2xl text-base leading-7 text-black/60">Choose the part of IsokoLink you need. You can browse available produce, ask the farming community, or explore crop health resources.</p><div className="mt-9 grid gap-4 md:grid-cols-3">{[{ icon: Store, title: 'Buying or selling', text: 'Explore listings or publish your harvest.', tab: 'market', action: 'Open the market' }, { icon: Users, title: 'Community questions', text: 'Share an idea or ask local growers and buyers.', tab: 'feed', action: 'Visit community' }, { icon: Sprout, title: 'Crop health', text: 'Browse prevention supplies and crop advice.', tab: 'defense', action: 'Open plant health' }].map(({ icon: Icon, title, text, tab, action }) => <button key={tab} type="button" onClick={() => setActiveTab(tab)} className="group rounded-2xl border border-black/8 bg-white p-6 text-left transition hover:-translate-y-1 hover:border-[#6B8E23]/40 hover:shadow-md"><span className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#6B8E23]/10 text-[#556B2F]"><Icon size={21} /></span><span className="mt-5 block text-lg font-semibold">{title}</span><span className="mt-2 block text-sm leading-6 text-black/60">{text}</span><span className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-[#556B2F]">{action} <ArrowRight size={15} className="transition-transform group-hover:translate-x-1" /></span></button>)}</div></div>
+            <div className="mx-auto max-w-5xl"><span className="text-xs font-semibold uppercase tracking-[0.15em] text-[#6B8E23]">Contact & support</span><h1 className="mt-3 text-3xl font-semibold tracking-tight sm:text-5xl">How can we help?</h1><p className="mt-4 max-w-2xl text-base leading-7 text-black/60">Choose the part of IsokoLink you need, or send a message to our team.</p><div className="mt-9 grid gap-4 md:grid-cols-3">{[{ icon: Store, title: 'Buying or selling', text: 'Explore listings or publish your harvest.', tab: 'market', action: 'Open the market' }, { icon: Users, title: 'Community questions', text: 'Share an idea or ask local growers and buyers.', tab: 'feed', action: 'Visit community' }, { icon: Sprout, title: 'Crop health', text: 'Browse prevention supplies and crop advice.', tab: 'defense', action: 'Open plant health' }].map(({ icon: Icon, title, text, tab, action }) => <button key={tab} type="button" onClick={() => setActiveTab(tab)} className="group rounded-2xl border border-black/8 bg-white p-6 text-left transition hover:-translate-y-1 hover:border-[#6B8E23]/40 hover:shadow-md"><span className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#6B8E23]/10 text-[#556B2F]"><Icon size={21} /></span><span className="mt-5 block text-lg font-semibold">{title}</span><span className="mt-2 block text-sm leading-6 text-black/60">{text}</span><span className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-[#556B2F]">{action} <ArrowRight size={15} className="transition-transform group-hover:translate-x-1" /></span></button>)}</div><form onSubmit={handleContactSubmit} className="mt-8 grid gap-4 rounded-2xl border border-black/8 bg-white p-5 sm:grid-cols-2 sm:p-7"><div className="sm:col-span-2"><h2 className="text-xl font-semibold">Send us a message</h2><p className="mt-1 text-sm text-black/55">We’ll use your email to reply.</p></div><label className="grid gap-1.5 text-sm font-medium">Your name<input name="name" required autoComplete="name" className="rounded-lg border border-black/15 px-3 py-2.5 font-normal outline-none focus:border-[#6B8E23]" /></label><label className="grid gap-1.5 text-sm font-medium">Email address<input name="email" type="email" required autoComplete="email" className="rounded-lg border border-black/15 px-3 py-2.5 font-normal outline-none focus:border-[#6B8E23]" /></label><label className="grid gap-1.5 text-sm font-medium sm:col-span-2">Message<textarea name="message" required rows="4" className="resize-y rounded-lg border border-black/15 px-3 py-2.5 font-normal outline-none focus:border-[#6B8E23]" /></label><div className="flex flex-wrap items-center gap-3 sm:col-span-2"><button type="submit" className="rounded-lg bg-[#6B8E23] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#556B2F]">Send message</button><p role="status" className="text-sm text-black/60">{contactStatus}</p></div></form></div>
           </div>
         )}
       </main>

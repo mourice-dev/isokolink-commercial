@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { X, ShoppingBag, Truck, CheckCircle2, ShieldCheck } from 'lucide-react';
 
 export default function OrderModal({ isOpen, onClose, produce, onSubmitOrder }) {
@@ -8,16 +8,19 @@ export default function OrderModal({ isOpen, onClose, produce, onSubmitOrder }) 
   const [deliveryType, setDeliveryType] = useState('kigali_delivery');
   const [notes, setNotes] = useState('');
 
+  const availableKg = produce ? Number(produce.quantityAvailable) * (String(produce.unit).toLowerCase().startsWith('ton') ? 1000 : 1) : 0;
+  const minOrderKg = produce ? Math.max(1, Number(String(produce.minOrder).match(/[\d.]+/)?.[0] || 1)) : 1;
+  useEffect(() => {
+    if (produce) setOrderQuantity(Math.min(1000, availableKg));
+  }, [produce?.id, availableKg]);
+
   if (!isOpen || !produce) return null;
 
   const totalAmount = orderQuantity * produce.pricePerKg;
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!buyerName || !buyerPhone || orderQuantity <= 0) {
-      alert('Please complete buyer contact and order volume.');
-      return;
-    }
+    if (!buyerName.trim() || !buyerPhone.trim() || orderQuantity < minOrderKg || orderQuantity > availableKg) return;
 
     const orderPayload = {
       id: `ord-${Date.now()}`,
@@ -82,14 +85,15 @@ export default function OrderModal({ isOpen, onClose, produce, onSubmitOrder }) 
             <label>Order Quantity in Kilograms (Kg)</label>
             <input
               type="number"
-              min="100"
-              step="50"
+              min={minOrderKg}
+              max={availableKg}
+              step="1"
               value={orderQuantity}
               onChange={(e) => setOrderQuantity(Number(e.target.value))}
               required
             />
             <span style={{ fontSize: '0.75rem', color: 'var(--text-light)', marginTop: '0.2rem', display: 'block' }}>
-              Minimum bulk threshold: {produce.minOrder}. Available in stock: {produce.quantityAvailable} {produce.unit}
+              Minimum bulk threshold: {produce.minOrder}. Available: {availableKg.toLocaleString()} kg
             </span>
           </div>
 
@@ -164,7 +168,7 @@ export default function OrderModal({ isOpen, onClose, produce, onSubmitOrder }) 
             </div>
           </div>
 
-          <button type="submit" className="btn-submit-form">
+          <button type="submit" disabled={orderQuantity < minOrderKg || orderQuantity > availableKg || !buyerName.trim() || !buyerPhone.trim()} className="btn-submit-form">
             Confirm Bulk Purchase Request
           </button>
         </form>

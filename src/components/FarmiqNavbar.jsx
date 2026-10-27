@@ -3,7 +3,6 @@ import { Bell, Menu, PlusCircle, ShoppingBag, UserPlus, X } from 'lucide-react';
 
 const navigation = [
   { label: 'Home', tab: 'home' },
-  { label: 'Contact', tab: 'contact' },
   { label: 'Market', tab: 'market' },
   { label: 'Community', tab: 'feed' },
   { label: 'About', tab: 'about' },
@@ -30,6 +29,9 @@ export default function FarmiqNavbar({ activeTab, setActiveTab, onOpenSellModal,
     <header className="sticky top-0 z-50 border-b border-white/10 bg-[#17291e] text-white shadow-[0_4px_18px_rgba(0,0,0,0.16)]">
       <div className="page-gutter mx-auto flex max-w-[1080px] items-center justify-between gap-3 py-2 xl:grid xl:grid-cols-[1fr_auto_1fr]">
         <div className="flex min-w-0 shrink-0 items-center gap-3 xl:justify-self-start">
+        <button type="button" onClick={() => handleNavClick('profile')} className="inline-flex shrink-0 items-center gap-1 rounded-lg border border-[#c2d19e]/40 px-2 py-1.5 text-[11px] font-semibold text-[#e6edda] transition hover:bg-white/10 sm:px-2.5 sm:text-xs">
+          <UserPlus size={14} className="text-[#c2d19e]" /> Sign up
+        </button>
         <button
           type="button"
           onClick={() => handleNavClick('home')}
@@ -49,9 +51,6 @@ export default function FarmiqNavbar({ activeTab, setActiveTab, onOpenSellModal,
           </span>
         </button>
 
-        <button type="button" onClick={() => handleNavClick('profile')} className="hidden shrink-0 items-center gap-1.5 rounded-lg border border-[#c2d19e]/45 px-2.5 py-2 text-xs font-semibold text-[#e6edda] transition hover:bg-white/10 sm:inline-flex">
-          <UserPlus size={15} className="text-[#c2d19e]" /> Sign up
-        </button>
         </div>
 
         <nav aria-label="Main navigation" className="hidden items-center justify-self-center gap-1 xl:flex">
@@ -66,17 +65,17 @@ export default function FarmiqNavbar({ activeTab, setActiveTab, onOpenSellModal,
           <button
             type="button"
             onClick={onOpenSellModal}
-            className="hidden cursor-pointer items-center gap-1.5 rounded-lg border border-white/25 px-3 py-2 text-xs font-semibold text-white/90 transition-all hover:-translate-y-0.5 hover:border-[#9eb65b] hover:bg-white/5 sm:inline-flex"
+            className="hidden cursor-pointer items-center gap-1 rounded-lg border border-white/25 px-2 py-1.5 text-[11px] font-semibold text-white/90 transition-all hover:border-[#9eb65b] hover:bg-white/5 sm:inline-flex"
           >
             <PlusCircle size={15} className="text-[#b3c773]" />
-            <span>Sell Produce</span>
+            <span>Sell produce</span>
           </button>
           <button
             type="button"
             onClick={() => handleNavClick('market')}
-            className="cursor-pointer rounded-lg bg-[#6B8E23] px-3 py-2.5 text-xs font-bold text-white shadow-sm transition-all hover:-translate-y-0.5 hover:bg-[#556B2F] hover:shadow-md sm:px-4 sm:text-sm"
+            className="cursor-pointer rounded-lg bg-[#6B8E23] px-2.5 py-2 text-[11px] font-semibold text-white shadow-sm transition-all hover:bg-[#556B2F] sm:px-3 sm:text-xs"
           >
-            Get Fresh Produce
+            Get produce
           </button>
           <button
             type="button"

@@ -38,6 +38,10 @@ async function initializeDatabase() {
       content TEXT NOT NULL DEFAULT '', details JSONB NOT NULL DEFAULT '{}'::jsonb,
       created_at TIMESTAMPTZ NOT NULL DEFAULT now()
     );
+    CREATE TABLE IF NOT EXISTS contact_messages (
+      id BIGSERIAL PRIMARY KEY, name TEXT NOT NULL, email TEXT NOT NULL, message TEXT NOT NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    );
   `);
   const count = await pool.query('SELECT count(*)::int AS count FROM products');
   if (!count.rows[0].count) {
@@ -55,6 +59,14 @@ async function saveProduct(p) {
 app.get('/api/health', async (_req, res) => {
   try { await pool.query('SELECT 1'); res.json({ status: 'ok', database: 'connected' }); }
   catch { res.status(503).json({ status: 'error', database: 'unavailable' }); }
+});
+app.post('/api/contact', async (req, res) => {
+  const { name, email, message } = req.body || {};
+  if (!String(name || '').trim() || !String(email || '').trim() || !String(message || '').trim()) return res.status(400).json({ error: 'Name, email, and message are required.' });
+  try {
+    await pool.query('INSERT INTO contact_messages(name,email,message) VALUES($1,$2,$3)', [String(name).trim(), String(email).trim(), String(message).trim()]);
+    res.status(201).json({ sent: true });
+  } catch { res.status(500).json({ error: 'Could not send your message.' }); }
 });
 app.get('/api/products', async (_req, res) => {
   try { const result = await pool.query('SELECT data FROM products ORDER BY created_at DESC'); res.json(result.rows.map(toProduct)); }
