@@ -14,13 +14,13 @@
   "license": "ISC",
   "author": "",
   "type": "module",
-  "main": "vite.config.js",
+  "main": "frontend/vite.config.js",
   "scripts": {
-    "dev": "vite",
-    "dev:api": "node server/index.js",
-    "build": "vite build",
+    "dev": "vite --config frontend/vite.config.js frontend",
+    "dev:api": "node backend/index.js",
+    "build": "vite --config frontend/vite.config.js build frontend --outDir ../dist",
     "lint": "oxlint",
-    "preview": "vite preview"
+    "preview": "vite preview --config frontend/vite.config.js frontend"
   },
   "dependencies": {
     "dotenv": "^18.0.9",

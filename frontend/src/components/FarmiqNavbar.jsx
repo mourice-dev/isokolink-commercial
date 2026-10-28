@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Bell, Menu, PlusCircle, ShoppingBag, UserPlus, X } from 'lucide-react';
+import { Bell, LogIn, LogOut, Menu, PlusCircle, ShoppingBag, UserPlus, X } from 'lucide-react';
+import { routePathForTab } from '../lib/routes';
 
 const navigation = [
   { label: 'Home', tab: 'home' },
@@ -8,12 +9,12 @@ const navigation = [
   { label: 'About', tab: 'about' },
 ];
 
-export default function FarmiqNavbar({ activeTab, setActiveTab, onOpenSellModal, onOpenCart, cartCount = 0 }) {
+export default function FarmiqNavbar({ activeTab, setActiveTab, onOpenSellModal, onOpenCart, cartCount = 0, user, onLogout }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
 
-  const handleNavClick = (tab) => {
-    setActiveTab(tab);
+  const handleNavClick = (tab, options) => {
+    setActiveTab(tab, options);
     setMobileMenuOpen(false);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -52,9 +53,9 @@ export default function FarmiqNavbar({ activeTab, setActiveTab, onOpenSellModal,
 
         <nav aria-label="Main navigation" className="hidden items-center justify-self-center gap-1 xl:flex">
           {navigation.map(({ label, tab }) => (
-            <button key={tab} type="button" aria-current={activeTab === tab ? 'page' : undefined} onClick={() => handleNavClick(tab)} className={`${navLinkClass(tab)} relative px-3.5 py-2.5 ${activeTab === tab ? 'text-[#d5e0bd] after:absolute after:bottom-0 after:left-3.5 after:right-3.5 after:h-0.5 after:rounded-full after:bg-[#9eb65b]' : 'text-white/80 hover:bg-white/[0.04] hover:text-white'}`}>
+            <a key={tab} href={routePathForTab(tab)} aria-current={activeTab === tab ? 'page' : undefined} onClick={(event) => { event.preventDefault(); handleNavClick(tab); }} className={`${navLinkClass(tab)} relative px-3.5 py-2.5 ${activeTab === tab ? 'text-[#d5e0bd] after:absolute after:bottom-0 after:left-3.5 after:right-3.5 after:h-0.5 after:rounded-full after:bg-[#9eb65b]' : 'text-white/80 hover:bg-white/[0.04] hover:text-white'}`}>
               {label}
-            </button>
+            </a>
           ))}
         </nav>
 
@@ -103,9 +104,10 @@ export default function FarmiqNavbar({ activeTab, setActiveTab, onOpenSellModal,
               <button type="button" onClick={() => { onOpenCart?.(); setNotificationsOpen(false); }} className="flex w-full items-center justify-between border-t border-black/8 px-4 py-3 text-left text-sm font-semibold text-[#556B2F] transition-colors hover:bg-[#f4f6ee]"><span className="inline-flex items-center gap-2"><ShoppingBag size={15} /> View your basket</span><span className="rounded-full bg-[#e8eddc] px-2 py-0.5 text-xs">{cartCount}</span></button>
             </div>
           )}
-          <button type="button" onClick={() => handleNavClick('profile')} className="ml-8 inline-flex shrink-0 items-center gap-1 rounded-lg border border-[#c2d19e]/40 px-2 py-1.5 text-[11px] font-semibold text-[#e6edda] transition hover:bg-white/10 sm:ml-12 sm:px-2.5 sm:text-xs md:ml-16 xl:ml-24 sm:text-xs">
-            <UserPlus size={14} className="text-[#c2d19e]" /> Sign up
-          </button>
+          {user ? <div className="flex shrink-0 items-center gap-1.5">
+            <button type="button" onClick={() => handleNavClick(`${user.role}-dashboard`)} className="inline-flex items-center gap-1 rounded-lg border border-[#c2d19e]/40 px-2 py-1.5 text-[11px] font-semibold text-[#e6edda] transition hover:bg-white/10 sm:px-2.5 sm:text-xs"><UserPlus size={14} className="text-[#c2d19e]" /><span className="max-w-20 truncate">{user.fullName || 'Dashboard'}</span></button>
+            <button type="button" onClick={onLogout} className="inline-flex items-center gap-1 rounded-lg px-2 py-1.5 text-[11px] font-semibold text-white/70 transition hover:bg-white/10 hover:text-white sm:text-xs"><LogOut size={14} /><span className="hidden sm:inline">Log out</span></button>
+          </div> : <a href="/login" onClick={(event) => { event.preventDefault(); handleNavClick('login'); }} className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-[#c2d19e]/40 px-2.5 py-2 text-[11px] font-semibold text-[#e6edda] transition hover:bg-white/10 sm:px-3 sm:text-xs"><LogIn size={14} className="text-[#c2d19e]" />Login</a>}
           <button
             type="button"
             onClick={() => setMobileMenuOpen((open) => !open)}
@@ -122,9 +124,9 @@ export default function FarmiqNavbar({ activeTab, setActiveTab, onOpenSellModal,
         <nav aria-label="Mobile navigation" className="border-t border-white/10 bg-[#17291e] px-4 py-3 xl:hidden">
           <div className="page-gutter mx-auto grid max-w-[1080px] grid-cols-2 gap-2 sm:grid-cols-6">
             {navigation.map(({ label, tab }) => (
-              <button key={tab} type="button" onClick={() => handleNavClick(tab)} className={`${navLinkClass(tab)} border border-white/10 bg-white/[0.03] text-left`}>
+              <a key={tab} href={routePathForTab(tab)} onClick={(event) => { event.preventDefault(); handleNavClick(tab); }} aria-current={activeTab === tab ? 'page' : undefined} className={`${navLinkClass(tab)} border border-white/10 bg-white/[0.03] text-left`}>
                 {label}
-              </button>
+              </a>
             ))}
             {onOpenSellModal && (
               <button

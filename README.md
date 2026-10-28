@@ -1,16 +1,28 @@
-# React + Vite
+# IsokoLink Rwanda
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+IsokoLink is organized as two separately deployable applications:
 
-Currently, two official plugins are available:
+- `frontend/`: React + Vite client
+- `backend/`: Express API + PostgreSQL persistence
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Local development
 
-## React Compiler
+1. Install the root frontend toolchain: `npm install`
+2. Start the API: `npm run dev:api`
+3. In another terminal, start the frontend: `npm run dev`
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+The Vite dev server proxies `/api` to `http://localhost:3001`. The API reads `backend/.env`. Copy `backend/.env.example` to `backend/.env` and set `DATABASE_URL`. The local `.env` file is ignored by Git.
 
-## Expanding the Oxlint configuration
+## Separate deployment
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and Oxlint's TypeScript related rules in your project.
+Each folder has its own package manifest, so install dependencies from `frontend/` and `backend/` independently when deploying. Deploy `frontend/` as a static Vite site and `backend/` as a Node service. Set `VITE_API_BASE_URL` at frontend build time to the API origin, such as `https://api.example.com` (without a trailing slash). On the backend, set `DATABASE_URL`, `API_PORT` if required by the host, and `FRONTEND_ORIGIN` to the exact frontend origin. Multiple allowed origins can be comma-separated.
+
+The backend creates its tables on startup and inserts the initial marketplace listings when the products table is empty. PostgreSQL TLS is enabled by the supplied Neon connection URL's `sslmode=require` parameter.
+
+## Accounts and dashboards
+
+Register at `/register/farmer` or `/register/buyer`, then sign in at `/login`. The API hashes passwords with bcrypt and stores login sessions in PostgreSQL. Set a long random `SESSION_SECRET` in `backend/.env`; production also requires `NODE_ENV=production` and the exact `FRONTEND_ORIGIN` allowlist. Farmer and buyer dashboards and their data APIs enforce the account role on the server.
+
+## Build
+
+Run `npm run build` from the repository root. The production bundle is written to `dist/`.

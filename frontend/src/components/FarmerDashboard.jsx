@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
+import { apiFetch } from '../lib/api';
 import { ArrowRight, Package, ShoppingBasket, Sprout } from 'lucide-react';
 
 export default function FarmerDashboard({ listings, profile, onAddProduce, onBrowseMarket }) {
   const [dashboard, setDashboard] = useState(null);
   useEffect(() => {
     if (!profile?.email) return;
-    fetch(`/api/farmer/dashboard?email=${encodeURIComponent(profile.email)}`).then((r) => r.ok ? r.json() : null).then((data) => { if (data) setDashboard(data); }).catch(() => {});
+    apiFetch('/api/farmer/dashboard').then((r) => r.ok ? r.json() : null).then((data) => { if (data) setDashboard(data); }).catch(() => {});
   }, [profile?.email]);
   const farmerListings = dashboard?.listings?.length ? dashboard.listings : listings.filter((item) => !profile?.email || item.farmerEmail === profile.email);
   return <div className="mx-auto max-w-[1000px] py-8 text-[#17291e]">

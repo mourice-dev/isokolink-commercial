@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
+import { apiFetch } from './lib/api';
 import FarmiqNavbar from './components/FarmiqNavbar';
 import SocialNewsFeed from './components/SocialNewsFeed';
 import ProduceMarket from './components/ProduceMarket';
@@ -13,13 +14,21 @@ import Footer from './components/Footer';
 import SustainableAgriLanding from './components/SustainableAgriLanding';
 import AccountManagement from './components/AccountManagement';
 import FarmerDashboard from './components/FarmerDashboard';
+import BuyerDashboard from './components/BuyerDashboard';
+import AuthPage from './components/AuthPage';
 import ProductDetails from './components/ProductDetails';
 import { INITIAL_PRODUCE_LISTINGS } from './data/mockData';
 import { ArrowRight, Sprout, Store, Users } from 'lucide-react';
+import { readRouteFromLocation, routePathForTab } from './lib/routes';
+
+const EXPECTED_ROLE_BY_TAB = { 'farmer-dashboard': 'farmer', 'buyer-dashboard': 'buyer', profile: 'any', payment: 'buyer' };
 
 export default function App() {
   // Navigation tabs: 'home' | 'market' | 'defense' | 'doctor' | 'agencies' | 'feed' | 'about' | 'contact'
-  const [activeTab, setActiveTab] = useState('home');
+  const [route, setRoute] = useState(readRouteFromLocation);
+  const activeTab = route.tab;
+  const [authUser, setAuthUser] = useState(null);
+  const [authLoading, setAuthLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedDistrict, setSelectedDistrict] = useState('All Rwanda');
   const [selectedCategory, setSelectedCategory] = useState('all');
@@ -32,20 +41,26 @@ export default function App() {
     } catch { return INITIAL_PRODUCE_LISTINGS; }
   });
   const [selectedProduct, setSelectedProduct] = useState(null);
+  const currentProduct = route.productId
+    ? produceListings.find((item) => String(item.id) === String(route.productId)) || selectedProduct
+    : selectedProduct;
   const [pendingOrder, setPendingOrder] = useState(null);
   const [paymentMethod, setPaymentMethod] = useState('mtn-momo');
   const [orderSaved, setOrderSaved] = useState(false);
-  const [accountProfile, setAccountProfile] = useState({});
   const [contactStatus, setContactStatus] = useState('');
 
   useEffect(() => {
-    fetch('/api/products').then((r) => r.ok ? r.json() : null).then((items) => { if (Array.isArray(items) && items.length) setProduceListings((current) => [...items, ...current.filter((entry) => !items.some((item) => item.id === entry.id))]); }).catch(() => {});
-    try {
-      const profiles = JSON.parse(window.localStorage.getItem('isokolink-account-profiles') || '{}');
-      const role = window.localStorage.getItem('isokolink-active-account') || 'farmer';
-      setAccountProfile(profiles[role] || {});
-    } catch { /* Profile is optional until saved. */ }
+    apiFetch('/api/products').then((r) => r.ok ? r.json() : null).then((items) => { if (Array.isArray(items) && items.length) setProduceListings((current) => [...items, ...current.filter((entry) => !items.some((item) => item.id === entry.id))]); }).catch(() => {});
   }, [activeTab]);
+
+  useEffect(() => {
+    let mounted = true;
+    apiFetch('/api/auth/me').then(async (response) => response.ok ? response.json() : null)
+      .then((data) => { if (mounted) setAuthUser(data?.user || null); })
+      .catch(() => { if (mounted) setAuthUser(null); })
+      .finally(() => { if (mounted) setAuthLoading(false); });
+    return () => { mounted = false; };
+  }, []);
 
   useEffect(() => {
     try { window.localStorage.setItem('isokolink-local-listings', JSON.stringify(produceListings)); } catch { /* Browser storage may be unavailable or full. */ }
@@ -62,6 +77,61 @@ export default function App() {
   const [selectedAgencyForBooking, setSelectedAgencyForBooking] = useState(null);
   const [isCartOpen, setIsCartOpen] = useState(false);
 
+  const setActiveTab = useCallback((tab, options = {}) => {
+    const productId = options.productId ?? (tab === 'payment' ? selectedProduct?.id : null);
+    const nextRoute = { tab, productId };
+    if (options.role) nextRoute.role = options.role;
+    const nextUrl = routePathForTab(tab, { productId, role: options.role });
+    if (`${window.location.pathname}${window.location.search}` !== nextUrl) {
+      const changeHistory = options.replace ? 'replaceState' : 'pushState';
+      window.history[changeHistory]({ isokoLinkRoute: true }, '', nextUrl);
+    }
+    setRoute(nextRoute);
+    if (tab === 'product-details' && options.product) {
+      setSelectedProduct(options.product);
+      setSelectedProduceForOrder(options.product);
+    }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [selectedProduct]);
+
+  const goBack = useCallback((fallbackTab = 'home') => {
+    if (window.history.state?.isokoLinkRoute) window.history.back();
+    else setActiveTab(fallbackTab);
+  }, [setActiveTab]);
+
+  useEffect(() => {
+    if (authLoading) return;
+    const expectedRole = EXPECTED_ROLE_BY_TAB[activeTab];
+    if (expectedRole) {
+      if (!authUser) {
+        setActiveTab('login', { role: activeTab === 'payment' ? 'buyer' : expectedRole === 'any' ? 'farmer' : expectedRole, replace: true });
+        return;
+      }
+      if (expectedRole !== 'any' && authUser.role !== expectedRole) {
+        setActiveTab(`${authUser.role}-dashboard`, { replace: true });
+        return;
+      }
+    }
+    if (authUser && (activeTab === 'login' || activeTab === 'register')) setActiveTab(`${authUser.role}-dashboard`, { replace: true });
+  }, [activeTab, authLoading, authUser, setActiveTab]);
+
+  useEffect(() => {
+    const restoreRoute = () => {
+      const nextRoute = readRouteFromLocation();
+      setRoute(nextRoute);
+      setIsOrderModalOpen(false);
+      if (nextRoute.productId) {
+        const product = produceListings.find((item) => String(item.id) === String(nextRoute.productId));
+        if (product) {
+          setSelectedProduct(product);
+          setSelectedProduceForOrder(product);
+        }
+      }
+    };
+    window.addEventListener('popstate', restoreRoute);
+    return () => window.removeEventListener('popstate', restoreRoute);
+  }, [produceListings]);
+
   // Toast notification
   const [toastMessage, setToastMessage] = useState(null);
 
@@ -70,6 +140,31 @@ export default function App() {
     setTimeout(() => {
       setToastMessage(null);
     }, 4000);
+  };
+
+  const handleAuthSuccess = (user) => {
+    setAuthUser(user);
+    setActiveTab(`${user.role}-dashboard`, { replace: true });
+  };
+
+  const handleLogout = async () => {
+    try {
+      const response = await apiFetch('/api/auth/logout', { method: 'POST' });
+      if (!response.ok) throw new Error('Could not log out. Please try again.');
+      setAuthUser(null);
+      setPendingOrder(null);
+      setOrderSaved(false);
+      setIsOrderModalOpen(false);
+      setActiveTab('login', { replace: true });
+    } catch (error) {
+      showToast(error.message || 'Could not log out. Please try again.');
+    }
+  };
+
+  const handleOpenSell = () => {
+    if (!authUser) return setActiveTab('login', { role: 'farmer' });
+    if (authUser.role !== 'farmer') return showToast('Only farmer accounts can publish produce.');
+    setIsSellModalOpen(true);
   };
 
   // Add to cart handler
@@ -100,10 +195,10 @@ export default function App() {
 
   // Farmer listing produce handler
   const handleAddProduce = async (newProduce) => {
-    const product = { ...newProduce, farmerEmail: accountProfile.email || '' };
+    const product = { ...newProduce, farmerEmail: authUser?.email || '', farmerPhone: authUser?.phone || '' };
     let savedToServer = false;
     try {
-      const response = await fetch('/api/products', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(product) });
+      const response = await apiFetch('/api/products', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(product) });
       if (response.ok) { Object.assign(product, await response.json()); savedToServer = true; }
     } catch { /* Keep this session usable if the API is offline. */ }
     setProduceListings((current) => [product, ...current]);
@@ -112,16 +207,25 @@ export default function App() {
 
   // Wholesale Buyer placing order
   const handleOpenOrderModal = (produce) => {
-    setSelectedProduceForOrder(produce);
-    setSelectedProduct(produce);
-    setActiveTab('product-details');
+    if (!authUser) return setActiveTab('login', { role: 'buyer' });
+    if (authUser.role !== 'buyer') return showToast('Sign in with a buyer account to place an order.');
+    setActiveTab('product-details', { productId: produce.id, product: produce });
+  };
+
+  const handleBuySelectedProduce = () => {
+    if (!authUser) return setActiveTab('login', { role: 'buyer' });
+    if (authUser.role !== 'buyer') return showToast('Sign in with a buyer account to place an order.');
+    if (!currentProduct) return showToast('This produce listing is no longer available.');
+    setSelectedProduct(currentProduct);
+    setSelectedProduceForOrder(currentProduct);
+    setIsOrderModalOpen(true);
   };
 
   const handleSubmitOrder = (order) => {
     setPendingOrder(order);
     setOrderSaved(false);
     setIsOrderModalOpen(false);
-    setActiveTab('payment');
+    setActiveTab('payment', { productId: currentProduct?.id });
   };
 
   // Farmer booking agency
@@ -143,7 +247,7 @@ export default function App() {
 
   const confirmPayment = async () => {
     try {
-      const response = await fetch('/api/orders', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...pendingOrder, paymentMethod }) });
+      const response = await apiFetch('/api/orders', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...pendingOrder, paymentMethod }) });
       if (!response.ok) throw new Error('Order could not be saved');
       setOrderSaved(true);
       showToast('Order request saved. The selected payment method is ready for confirmation.');
@@ -158,7 +262,7 @@ export default function App() {
     const form = new FormData(formElement);
     setContactStatus('Sending your message…');
     try {
-      const response = await fetch('/api/contact', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: form.get('name'), email: form.get('email'), message: form.get('message') }) });
+      const response = await apiFetch('/api/contact', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: form.get('name'), email: form.get('email'), message: form.get('message') }) });
       if (!response.ok) throw new Error('Message could not be sent');
       formElement.reset();
       setContactStatus('Thanks — your message has been sent to the IsokoLink team.');
@@ -178,12 +282,17 @@ export default function App() {
       <FarmiqNavbar
         activeTab={activeTab}
         setActiveTab={setActiveTab}
-        onOpenSellModal={() => setIsSellModalOpen(true)}
+        onOpenSellModal={handleOpenSell}
         cartCount={cartItems.reduce((acc, curr) => acc + (curr.quantity || 1), 0)}
         onOpenCart={() => setIsCartOpen(true)}
+        user={authUser}
+        onLogout={handleLogout}
       />
 
       <main className="flex-1">
+        {(activeTab === 'login' || activeTab === 'register') && authLoading && <div className="grid min-h-[65vh] place-items-center bg-[#f7f8f4] text-sm text-black/55">Checking your secure session…</div>}
+        {(activeTab === 'login' || activeTab === 'register') && !authUser && !authLoading && <AuthPage key={`${activeTab}:${route.role || ''}`} mode={activeTab === 'register' ? 'register' : 'login'} role={route.role} onAuthSuccess={handleAuthSuccess} onNavigate={setActiveTab} />}
+        {authLoading && ['profile', 'farmer-dashboard', 'buyer-dashboard', 'payment'].includes(activeTab) && <div className="grid min-h-[65vh] place-items-center bg-[#f7f8f4] text-sm text-black/55">Checking your secure session…</div>}
         {/* ================= 1. HOME TAB (Exact Sustainable Agriculture layout from user's image with low font size) ================= */}
         {activeTab === 'home' && (
           <div>
@@ -259,17 +368,18 @@ export default function App() {
           </div>
         )}
 
-        {activeTab === 'profile' && (
+        {activeTab === 'profile' && authUser && (
           <div className="page-gutter min-h-[75vh] bg-[#f7f8f4] py-8 text-black">
-            <AccountManagement />
+            <AccountManagement user={authUser} onProfileUpdated={(updated) => setAuthUser((current) => ({ ...current, ...updated }))} />
           </div>
         )}
 
-        {activeTab === 'farmer-dashboard' && <div className="page-gutter min-h-[75vh] bg-[#f7f8f4] py-8"><FarmerDashboard listings={produceListings} profile={accountProfile} onBrowseMarket={() => setActiveTab('market')} onAddProduce={() => setIsSellModalOpen(true)} /></div>}
+        {activeTab === 'farmer-dashboard' && authUser?.role === 'farmer' && <div className="page-gutter min-h-[75vh] bg-[#f7f8f4] py-8"><FarmerDashboard listings={produceListings} profile={{ ...authUser, ...(authUser.details || {}) }} onBrowseMarket={() => setActiveTab('market')} onAddProduce={handleOpenSell} /></div>}
+        {activeTab === 'buyer-dashboard' && authUser?.role === 'buyer' && <div className="page-gutter min-h-[75vh] bg-[#f7f8f4] py-8"><BuyerDashboard user={{ ...authUser, ...(authUser.details || {}) }} onBrowseMarket={() => setActiveTab('market')} /></div>}
 
-        {activeTab === 'product-details' && <div className="page-gutter min-h-[75vh] bg-[#f7f8f4] py-4"><ProductDetails product={selectedProduct} onBack={() => setActiveTab('market')} onBuy={() => { setSelectedProduceForOrder(selectedProduct); setIsOrderModalOpen(true); }} /></div>}
+        {activeTab === 'product-details' && <div className="page-gutter min-h-[75vh] bg-[#f7f8f4] py-4"><ProductDetails product={currentProduct} onBack={() => goBack('market')} onBuy={handleBuySelectedProduce} /></div>}
 
-        {activeTab === 'payment' && <div className="page-gutter min-h-[75vh] bg-[#f7f8f4] py-8 text-[#17291e]"><section className="mx-auto max-w-2xl rounded-3xl border border-black/8 bg-white p-6 shadow-sm sm:p-8"><p className="text-xs font-semibold uppercase tracking-widest text-[#6B8E23]">Checkout</p><h1 className="mt-2 text-2xl font-semibold">Choose a payment option</h1><p className="mt-2 text-sm text-black/55">Your order request will be recorded as pending. Payment collection must be confirmed with the selected provider.</p>{pendingOrder && <div className="mt-5 flex items-center gap-3 rounded-xl bg-[#f4f6ee] p-4"><img src={selectedProduct?.image} alt="" className="h-14 w-14 rounded-lg object-cover"/><div className="min-w-0 flex-1"><p className="truncate text-sm font-semibold">{pendingOrder.produceName}</p><p className="mt-1 text-xs text-black/55">{pendingOrder.quantityKg} kg · {pendingOrder.buyerName}</p></div><strong className="text-sm">{Number(pendingOrder.totalAmount).toLocaleString()} RWF</strong></div>}<div className="mt-5 grid gap-3 sm:grid-cols-2">{[{id:'mtn-momo',name:'MTN Mobile Money',hint:'Pay with MTN MoMo'},{id:'airtel-money',name:'Airtel Money',hint:'Pay with Airtel Money'},{id:'bank-transfer',name:'Bank transfer',hint:'Transfer to supplier account'},{id:'pay-on-delivery',name:'Pay on delivery',hint:'Confirm payment at delivery'}].map((option)=><label key={option.id} className={`cursor-pointer rounded-xl border p-4 transition ${paymentMethod===option.id?'border-[#6B8E23] bg-[#f4f6ee]':'border-black/10 hover:border-[#6B8E23]/50'}`}><span className="flex items-start gap-3"><input type="radio" name="payment" value={option.id} checked={paymentMethod===option.id} onChange={()=>setPaymentMethod(option.id)} className="mt-1 accent-[#6B8E23]"/><span><span className="block text-sm font-semibold">{option.name}</span><span className="mt-1 block text-xs text-black/50">{option.hint}</span></span></span></label>)}</div>{orderSaved && <p role="status" className="mt-5 rounded-xl bg-green-50 p-3 text-sm font-medium text-green-800">Order saved as pending. The farmer can now review your request.</p>}<div className="mt-6 flex flex-wrap gap-3"><button disabled={!pendingOrder || orderSaved} onClick={confirmPayment} className="rounded-xl bg-[#556B2F] px-5 py-3 text-sm font-semibold text-white disabled:opacity-50">{orderSaved?'Order submitted':'Continue with selected option'}</button><button onClick={()=>setActiveTab('market')} className="rounded-xl border border-black/10 px-5 py-3 text-sm font-semibold">Back to market</button></div><p className="mt-4 text-[11px] leading-5 text-black/45">Payments are not charged by this demo. A payment provider integration is required to collect money securely.</p></section></div>}
+        {activeTab === 'payment' && authUser?.role === 'buyer' && <div className="page-gutter min-h-[75vh] bg-[#f7f8f4] py-8 text-[#17291e]"><section className="mx-auto max-w-2xl rounded-3xl border border-black/8 bg-white p-6 shadow-sm sm:p-8"><p className="text-xs font-semibold uppercase tracking-widest text-[#6B8E23]">Checkout</p><h1 className="mt-2 text-2xl font-semibold">Choose a payment option</h1><p className="mt-2 text-sm text-black/55">Your order request will be recorded as pending. Payment collection must be confirmed with the selected provider.</p>{pendingOrder && <div className="mt-5 flex items-center gap-3 rounded-xl bg-[#f4f6ee] p-4"><img src={currentProduct?.image} alt="" className="h-14 w-14 rounded-lg object-cover"/><div className="min-w-0 flex-1"><p className="truncate text-sm font-semibold">{pendingOrder.produceName}</p><p className="mt-1 text-xs text-black/55">{pendingOrder.quantityKg} kg · {pendingOrder.buyerName}</p></div><strong className="text-sm">{Number(pendingOrder.totalAmount).toLocaleString()} RWF</strong></div>}<div className="mt-5 grid gap-3 sm:grid-cols-2">{[{id:'mtn-momo',name:'MTN Mobile Money',hint:'Pay with MTN MoMo'},{id:'airtel-money',name:'Airtel Money',hint:'Pay with Airtel Money'},{id:'bank-transfer',name:'Bank transfer',hint:'Transfer to supplier account'},{id:'pay-on-delivery',name:'Pay on delivery',hint:'Confirm payment at delivery'}].map((option)=><label key={option.id} className={`cursor-pointer rounded-xl border p-4 transition ${paymentMethod===option.id?'border-[#6B8E23] bg-[#f4f6ee]':'border-black/10 hover:border-[#6B8E23]/50'}`}><span className="flex items-start gap-3"><input type="radio" name="payment" value={option.id} checked={paymentMethod===option.id} onChange={()=>setPaymentMethod(option.id)} className="mt-1 accent-[#6B8E23]"/><span><span className="block text-sm font-semibold">{option.name}</span><span className="mt-1 block text-xs text-black/50">{option.hint}</span></span></span></label>)}</div>{orderSaved && <p role="status" className="mt-5 rounded-xl bg-green-50 p-3 text-sm font-medium text-green-800">Order saved as pending. The farmer can now review your request.</p>}<div className="mt-6 flex flex-wrap gap-3"><button disabled={!pendingOrder || orderSaved} onClick={confirmPayment} className="rounded-xl bg-[#556B2F] px-5 py-3 text-sm font-semibold text-white disabled:opacity-50">{orderSaved?'Order submitted':'Continue with selected option'}</button><button onClick={()=>goBack('market')} className="rounded-xl border border-black/10 px-5 py-3 text-sm font-semibold">Back to produce</button></div><p className="mt-4 text-[11px] leading-5 text-black/45">Payments are not charged by this demo. A payment provider integration is required to collect money securely.</p></section></div>}
 
         {/* ================= 7. ABOUT US TAB ================= */}
         {activeTab === 'about' && (
@@ -330,7 +440,9 @@ export default function App() {
       {/* Footer */}
       <Footer
         onSwitchTab={setActiveTab}
-        onOpenSellModal={() => setIsSellModalOpen(true)}
+        onOpenSellModal={handleOpenSell}
+        onContactSubmit={handleContactSubmit}
+        contactStatus={contactStatus}
       />
     </div>
   );
