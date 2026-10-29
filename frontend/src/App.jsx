@@ -364,6 +364,7 @@ export default function App() {
           <div className="page-gutter min-h-[75vh] bg-[#f4f6f1] py-6 text-black">
             <SocialNewsFeed
               onNavigateTab={setActiveTab}
+              user={authUser}
             />
           </div>
         )}

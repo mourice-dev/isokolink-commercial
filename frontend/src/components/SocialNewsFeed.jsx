@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { MessageCircle, Send, Sprout, Store, ThumbsUp, UserRound, X } from 'lucide-react';
 import { INITIAL_SOCIAL_POSTS, SIDEBAR_CONTACTS } from '../data/socialFeedData';
+import { apiFetch } from '../lib/api';
 
 const FEED_FILTERS = ['All posts', 'New produce', 'Farm technology', 'Ideas & quotes'];
 
@@ -13,7 +14,7 @@ function readStoredArray(key, fallback) {
   }
 }
 
-export default function SocialNewsFeed({ onNavigateTab }) {
+export default function SocialNewsFeed({ onNavigateTab, user }) {
   const [posts, setPosts] = useState(() => readStoredArray('isokolink-community-posts', INITIAL_SOCIAL_POSTS));
   const [chatMessages, setChatMessages] = useState(() => readStoredArray('isokolink-community-messages', []));
   const [feedFilter, setFeedFilter] = useState('All posts');
@@ -21,6 +22,24 @@ export default function SocialNewsFeed({ onNavigateTab }) {
   const [commentText, setCommentText] = useState('');
   const [activeChat, setActiveChat] = useState(null);
   const [chatDraft, setChatDraft] = useState('');
+  const [postDraft, setPostDraft] = useState('');
+  const [postType, setPostType] = useState('Idea or quote');
+  const [postStatus, setPostStatus] = useState('');
+
+  useEffect(() => {
+    let mounted = true;
+    apiFetch('/api/community/posts').then(async (response) => {
+      if (!response.ok) throw new Error('Community posts unavailable');
+      return response.json();
+    }).then((serverPosts) => {
+      if (!mounted || !Array.isArray(serverPosts) || serverPosts.length === 0) return;
+      setPosts((localPosts) => {
+        const serverIds = new Set(serverPosts.map((post) => String(post.id)));
+        return [...serverPosts, ...localPosts.filter((post) => !serverIds.has(String(post.id)))];
+      });
+    }).catch(() => {});
+    return () => { mounted = false; };
+  }, []);
 
   useEffect(() => {
     try { window.localStorage.setItem('isokolink-community-posts', JSON.stringify(posts)); } catch { /* Browser storage can be disabled. */ }
@@ -49,9 +68,38 @@ export default function SocialNewsFeed({ onNavigateTab }) {
     setPosts((current) => current.map((post) => post.id !== postId ? post : {
       ...post,
       commentsCount: (post.commentsCount || 0) + 1,
-      comments: [...(post.comments || []), { id: `comment-${Date.now()}`, userName: 'You', text: commentText.trim(), time: 'Just now' }],
+      comments: [...(post.comments || []), { id: `comment-${Date.now()}`, userName: user?.fullName || 'You', text: commentText.trim(), time: 'Just now' }],
     }));
     setCommentText('');
+  };
+
+  const publishPost = async (event) => {
+    event.preventDefault();
+    const content = postDraft.trim();
+    if (!content) return;
+    const id = `community-${Date.now()}`;
+    const post = {
+      id,
+      authorName: user?.fullName || user?.details?.fullName || 'Community member',
+      authorAvatar: user?.avatarUrl || user?.details?.avatarUrl || communityProfile.avatarUrl || '',
+      location: user?.district || user?.details?.district || communityProfile.district || '',
+      postType,
+      content,
+      timeAgo: 'Just now',
+      likes: 0,
+      commentsCount: 0,
+      comments: [],
+    };
+    setPosts((current) => [post, ...current]);
+    setPostDraft('');
+    setPostStatus('');
+    try {
+      const response = await apiFetch('/api/community/posts', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(post) });
+      if (!response.ok) throw new Error('Community post could not be synced');
+      setPostStatus('Your post is shared with the community.');
+    } catch {
+      setPostStatus('Your post is saved on this device. It will appear here when the community service is available.');
+    }
   };
 
   const sendChat = (event) => {
@@ -76,12 +124,22 @@ export default function SocialNewsFeed({ onNavigateTab }) {
         <div className="flex flex-wrap gap-2">
           <button type="button" onClick={() => onNavigateTab('market')} className="inline-flex w-fit items-center gap-2 rounded-lg border border-black/10 bg-white px-3.5 py-2.5 text-sm font-semibold text-[#556B2F] transition hover:border-[#6B8E23]/50 hover:bg-[#f6f8f0]"><Store size={16} /> Browse market</button>
           <button type="button" onClick={() => onNavigateTab('farmer-dashboard')} className="inline-flex w-fit items-center gap-2 rounded-lg border border-[#556B2F]/20 bg-white px-3.5 py-2 text-sm font-semibold text-[#556B2F] transition hover:bg-[#f6f8f0]">Farmer dashboard</button>
-          <button type="button" onClick={() => onNavigateTab('profile')} className="inline-flex w-fit items-center gap-2 rounded-lg bg-[#556B2F] px-3 py-2 text-sm font-semibold text-white transition hover:bg-[#3f5221]"><span className="h-7 w-7 overflow-hidden rounded-full border border-white/50 bg-white/20">{communityProfile.avatarUrl ? <img src={communityProfile.avatarUrl} alt="" className="h-full w-full object-cover"/> : <span className="grid h-full place-items-center"><UserRound size={15}/></span>}</span><span className="hidden sm:inline">Account</span></button>
+          <button type="button" onClick={() => onNavigateTab('profile')} aria-label="Open your profile" title="Open your profile" className="inline-flex h-11 w-11 items-center justify-center overflow-hidden rounded-full border-2 border-[#dce5cc] bg-[#556B2F] text-white shadow-sm transition hover:ring-2 hover:ring-[#6B8E23]/40">{(user?.avatarUrl || user?.details?.avatarUrl || communityProfile.avatarUrl) ? <img src={user?.avatarUrl || user?.details?.avatarUrl || communityProfile.avatarUrl} alt="Your profile" className="h-full w-full object-cover"/> : <UserRound size={20}/>}</button>
         </div>
       </header>
 
       <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_280px]">
         <main className="min-w-0 space-y-4">
+          <form onSubmit={publishPost} className="rounded-2xl border border-black/8 bg-white p-4 shadow-sm sm:p-5">
+            <div className="flex items-start gap-3">
+              <button type="button" onClick={() => onNavigateTab('profile')} aria-label="Open profile settings" className="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-full bg-[#e9eedf] text-[#556B2F]">{(user?.avatarUrl || user?.details?.avatarUrl || communityProfile.avatarUrl) ? <img src={user?.avatarUrl || user?.details?.avatarUrl || communityProfile.avatarUrl} alt="" className="h-full w-full object-cover"/> : <UserRound size={18}/>}</button>
+              <textarea value={postDraft} onChange={(event) => setPostDraft(event.target.value)} maxLength={2000} rows={3} placeholder="Share a farm update, question, or idea…" aria-label="Write a community post" className="min-h-20 min-w-0 flex-1 resize-y rounded-xl border border-black/10 px-3.5 py-3 text-sm outline-none transition focus:border-[#6B8E23]" />
+            </div>
+            <div className="mt-3 flex flex-wrap items-center justify-between gap-3 border-t border-black/6 pt-3">
+              <label className="flex items-center gap-2 text-xs font-medium text-black/55">Post category<select value={postType} onChange={(event) => setPostType(event.target.value)} aria-label="Post category" className="rounded-lg border-0 bg-transparent py-1 text-xs font-medium text-[#556B2F] outline-none"><option>Idea or quote</option><option>New produce</option><option>Farm technology</option></select></label>
+              <div className="flex items-center gap-3"><span role="status" className="max-w-[250px] text-right text-xs text-black/50">{postStatus}</span><button type="submit" disabled={!postDraft.trim()} className="inline-flex items-center gap-2 rounded-lg bg-[#556B2F] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#3f5221] disabled:cursor-not-allowed disabled:opacity-50"><Send size={15}/> Share post</button></div>
+            </div>
+          </form>
           <div className="flex gap-1 overflow-x-auto rounded-xl border border-black/8 bg-white p-1.5">
             {FEED_FILTERS.map((filter) => <button key={filter} type="button" onClick={() => setFeedFilter(filter)} className={`shrink-0 rounded-lg px-3.5 py-2 text-xs font-semibold transition-colors ${feedFilter === filter ? 'bg-[#556B2F] text-white' : 'text-black/55 hover:bg-[#f4f6ee] hover:text-[#556B2F]'}`}>{filter}</button>)}
           </div>
