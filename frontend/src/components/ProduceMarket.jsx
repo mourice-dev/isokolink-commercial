@@ -16,6 +16,13 @@ export default function ProduceMarket({ listings = [], selectedCategory, setSele
     if (activeSort === 'volume') return b.quantityAvailable - a.quantityAvailable;
     return 0;
   }), [listings, searchQuery, selectedCategory, selectedDistrict, activeSort]);
+  const hasActiveFilters = Boolean(searchQuery.trim()) || selectedCategory !== 'all' || selectedDistrict !== 'All Rwanda' || activeSort !== 'latest';
+  const clearFilters = () => {
+    setSearchQuery?.('');
+    setSelectedCategory?.('all');
+    setSelectedDistrict?.('All Rwanda');
+    setActiveSort('latest');
+  };
 
   return (
     <div className="mx-auto max-w-[1000px] space-y-7">
@@ -69,11 +76,16 @@ export default function ProduceMarket({ listings = [], selectedCategory, setSele
           </div>
         </div>
 
-        <div className="mt-5 flex gap-2 overflow-x-auto pb-1">
+        <div className="mt-5 flex gap-2 overflow-x-auto pb-1" aria-label="Produce categories">
           {PRODUCE_CATEGORIES.map((category) => <button key={category.id} type="button" onClick={() => setSelectedCategory(category.id)} className={`shrink-0 rounded-full border px-4 py-2 text-sm font-medium transition ${selectedCategory === category.id ? 'border-[#556B2F] bg-[#556B2F] text-white' : 'border-black/12 bg-white text-black/70 hover:border-[#6B8E23] hover:text-[#556B2F]'}`}>{category.icon} <span className="ml-1">{category.label}</span></button>)}
         </div>
 
-        {sortedListings.length === 0 ? <div className="mt-6 rounded-2xl border border-dashed border-black/20 bg-white px-5 py-14 text-center"><h3 className="font-semibold">No listings match these filters</h3><p className="mt-2 text-sm text-black/55">Try another search or district.</p></div> : <div className="mt-6 grid gap-5 sm:grid-cols-2 xl:grid-cols-3">{sortedListings.map((produce) => (
+        <div className="mt-4 flex items-center justify-between gap-3 text-xs text-black/55" aria-live="polite">
+          <span>{sortedListings.length} {sortedListings.length === 1 ? 'listing' : 'listings'} found</span>
+          {hasActiveFilters && <button type="button" onClick={clearFilters} className="font-semibold text-[#556B2F] underline-offset-2 hover:underline">Clear filters</button>}
+        </div>
+
+        {sortedListings.length === 0 ? <div className="mt-6 rounded-2xl border border-dashed border-black/20 bg-white px-5 py-14 text-center"><h3 className="font-semibold">No listings match these filters</h3><p className="mt-2 text-sm text-black/55">Try another search or district.</p>{hasActiveFilters && <button type="button" onClick={clearFilters} className="mt-4 rounded-lg bg-[#556B2F] px-4 py-2 text-sm font-semibold text-white hover:bg-[#3f5221]">Reset marketplace filters</button>}</div> : <div className="mt-6 grid gap-5 sm:grid-cols-2 xl:grid-cols-3">{sortedListings.map((produce) => (
           <article key={produce.id} className="group overflow-hidden rounded-2xl border border-black/8 bg-white transition duration-200 hover:-translate-y-1 hover:border-[#6B8E23]/35 hover:shadow-lg">
             <div className="relative h-44 overflow-hidden bg-[#edf0e6]"><img src={produce.image} alt={produce.name} loading="lazy" className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]" /><span className="absolute left-3 top-3 inline-flex items-center gap-1.5 rounded-full bg-white/95 px-2.5 py-1.5 text-xs font-medium text-black"><MapPin size={12} />{produce.district}</span><span className="absolute bottom-3 right-3 rounded-full bg-[#17291e]/90 px-2.5 py-1.5 text-xs font-semibold text-white">{produce.quantityAvailable} {produce.unit} available</span></div>
             <div className="p-5"><div className="flex items-start justify-between gap-2"><div><h3 className="font-semibold leading-5">{produce.name}</h3><p className="mt-1 text-xs text-black/50">{produce.kinyarwandaName}</p></div>{produce.verified && <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-[#228B22]/10 px-2 py-1 text-[10px] font-semibold text-[#246d22]"><BadgeCheck size={13} /> Verified</span>}</div>
