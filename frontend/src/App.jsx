@@ -67,7 +67,22 @@ export default function App() {
   }, [produceListings]);
 
   // Cart state
-  const [cartItems, setCartItems] = useState([]);
+  const [cartItems, setCartItems] = useState(() => {
+    try {
+      const saved = JSON.parse(window.localStorage.getItem('isokolink-cart') || '[]');
+      return Array.isArray(saved) ? saved.filter((item) => item?.id && item?.title) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem('isokolink-cart', JSON.stringify(cartItems));
+    } catch {
+      // Browser storage may be unavailable or full.
+    }
+  }, [cartItems]);
 
   // Modals & Drawers
   const [isSellModalOpen, setIsSellModalOpen] = useState(false);
