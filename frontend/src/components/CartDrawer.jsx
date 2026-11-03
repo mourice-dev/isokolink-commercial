@@ -149,6 +149,8 @@ export default function CartDrawer({
                     value={phoneNumber}
                     onChange={(e) => setPhoneNumber(e.target.value)}
                     placeholder="+250 788 000 000"
+                    pattern="(?:\+250|0)\s?7[238]\s?\d{3}\s?\d{3}"
+                    title="Enter a valid Rwanda mobile number, for example +250 788 000 000"
                     required
                   />
                 </div>
