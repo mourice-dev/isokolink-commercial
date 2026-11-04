@@ -23,6 +23,8 @@ The backend creates its tables on startup and inserts the initial marketplace li
 
 The community feed is available at `/community`. Visitors can browse posts, while signed-in users can publish posts, react, comment, and keep direct-message history with the listed community contacts. Community activity is persisted in PostgreSQL; the client keeps a local copy so the feed remains usable when the API is temporarily unavailable.
 
+The marketplace supports searching by produce, Kinyarwanda name, district, or cooperative, with category, district, and price/volume sorting filters. Buyer cart contents are persisted in browser storage so an accidental refresh does not lose an in-progress order. Checkout validates Rwanda mobile-money numbers before sending the simulated payment request.
+
 ## Accounts and dashboards
 
 Register at `/register/farmer` or `/register/buyer`, then sign in at `/login`. The API hashes passwords with bcrypt and stores login sessions in PostgreSQL. Set a long random `SESSION_SECRET` in `backend/.env`; production also requires `NODE_ENV=production` and the exact `FRONTEND_ORIGIN` allowlist. Farmer and buyer dashboards and their data APIs enforce the account role on the server.
