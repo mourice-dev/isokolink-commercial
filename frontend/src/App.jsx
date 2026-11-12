@@ -294,7 +294,7 @@ export default function App() {
       */}
 
       {/* Dashboards provide their own navigation, so keep the public navbar off them. */}
-      {!['farmer-dashboard', 'buyer-dashboard'].includes(activeTab) && (
+      {activeTab !== 'farmer-dashboard' && (
         <FarmiqNavbar
           activeTab={activeTab}
           setActiveTab={setActiveTab}
@@ -325,8 +325,8 @@ export default function App() {
 
         {/* ================= 2. PRODUCE MARKET TAB ================= */}
         {activeTab === 'market' && (
-          <div className="page-gutter min-h-[75vh] bg-[#f7f8f4] py-8 text-black">
-            <div className="max-w-[1000px] mx-auto">
+          <div className="min-h-[75vh] bg-[#f7f8f4] text-black">
+            <div className="w-full">
               <ProduceMarket
                 listings={produceListings}
                 selectedCategory={selectedCategory}
@@ -403,7 +403,7 @@ export default function App() {
         {activeTab === 'about' && (
           <div className="page-gutter min-h-[75vh] bg-[#f7f8f4] py-12 text-black sm:py-16">
             <div className="mx-auto max-w-[1000px]">
-              <section className="rounded-3xl bg-[#17291e] px-6 py-10 text-white sm:px-10 sm:py-14"><span className="text-xs font-semibold uppercase tracking-[0.15em] text-[#c2d19e]">About IsokoLink Rwanda</span><h1 className="mt-4 max-w-3xl text-3xl font-semibold leading-tight tracking-tight sm:text-5xl">A more connected home for Rwanda’s agriculture.</h1><p className="mt-5 max-w-2xl text-base leading-7 text-white/70">IsokoLink brings farmers, cooperatives, buyers, and agricultural supporters together around practical tools for local trade and shared knowledge. We want it to be easier to discover what is available, start useful conversations, and find the information needed to make the next decision.</p></section>
+              <section className="rounded-3xl bg-[#556B2F] px-6 py-10 text-white sm:px-10 sm:py-14"><span className="text-xs font-semibold uppercase tracking-[0.15em] text-[#c2d19e]">About IsokoLink Rwanda</span><h1 className="mt-4 max-w-3xl text-3xl font-semibold leading-tight tracking-tight sm:text-5xl">A more connected home for Rwanda’s agriculture.</h1><p className="mt-5 max-w-2xl text-base leading-7 text-white/70">IsokoLink brings farmers, cooperatives, buyers, and agricultural supporters together around practical tools for local trade and shared knowledge. We want it to be easier to discover what is available, start useful conversations, and find the information needed to make the next decision.</p></section>
               <section className="mt-8 grid gap-8 rounded-3xl border border-black/8 bg-white p-6 sm:p-9 md:grid-cols-[1.2fr_0.8fr] md:items-center">
                 <div><p className="text-xs font-semibold uppercase tracking-[0.15em] text-[#6B8E23]">Why we’re here</p><h2 className="mt-3 text-2xl font-semibold tracking-tight sm:text-3xl">Good connections help good work reach further.</h2><p className="mt-4 text-sm leading-7 text-black/65">Agriculture depends on many people working across places, seasons, and supply chains. A grower may be ready to sell while a buyer is looking for a dependable source. A cooperative may have useful experience to share, and a producer may be seeking practical crop guidance. IsokoLink is designed as a shared digital meeting place for these everyday needs.</p><p className="mt-3 text-sm leading-7 text-black/65">The platform brings market discovery and community knowledge into one experience. Our aim is to make information easier to find and communication easier to begin, while keeping local participants and their choices at the center.</p></div>
                 <aside className="rounded-2xl bg-[#f4f6ee] p-6"><p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#556B2F]">Our direction</p><p className="mt-3 text-lg font-medium leading-7 text-[#17291e]">A more open, informed, and connected agricultural community.</p><div className="mt-5 border-t border-[#17291e]/10 pt-4"><p className="text-sm leading-6 text-black/60">We believe useful digital tools should support real relationships: clear listings, respectful conversations, and knowledge that people can put to work in their own context.</p></div></aside>
@@ -463,12 +463,12 @@ export default function App() {
       )}
 
       {/* Footer */}
-      <Footer
+      {activeTab !== 'farmer-dashboard' && <Footer
         onSwitchTab={setActiveTab}
         onOpenSellModal={handleOpenSell}
         onContactSubmit={handleContactSubmit}
         contactStatus={contactStatus}
-      />
+      />}
     </div>
   );
 }

@@ -27,7 +27,7 @@ export default function FarmiqNavbar({ activeTab, setActiveTab, onOpenSellModal,
       }`;
 
   return (
-    <header className="sticky top-0 z-50 border-b border-white/10 bg-[#17291e] text-white shadow-[0_4px_18px_rgba(0,0,0,0.16)]">
+    <header className="sticky top-0 z-50 border-b border-white/10 bg-[#556B2F] text-white shadow-[0_4px_18px_rgba(0,0,0,0.16)]">
       <div className="page-gutter mx-auto flex max-w-[1080px] items-center justify-between gap-3 py-2 xl:grid xl:grid-cols-[1fr_auto_1fr]">
         <div className="flex min-w-0 shrink-0 items-center gap-3 xl:justify-self-start">
         <button

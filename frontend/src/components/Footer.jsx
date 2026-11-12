@@ -13,7 +13,7 @@ const links = [
 
 export default function Footer({ onSwitchTab, onOpenSellModal, onContactSubmit, contactStatus }) {
   return (
-    <footer className="mt-auto bg-[#17291e] text-white">
+    <footer className="mt-auto bg-[#556B2F] text-white">
       <div className="page-gutter mx-auto max-w-[1200px] py-10">
         <div className="grid gap-8 border-b border-white/10 pb-10 md:grid-cols-2 xl:grid-cols-[1.15fr_0.65fr_0.8fr_1.4fr]">
           <div className="max-w-md">
