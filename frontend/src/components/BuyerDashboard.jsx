@@ -1,38 +1,62 @@
 import React, { useEffect, useState } from 'react';
 import { apiFetch } from '../lib/api';
-import { Bell, ChevronDown, CircleHelp, LayoutDashboard, Leaf, LogOut, PackageCheck, Search, Settings, ShoppingBag, ShoppingCart, Sprout, Store, Plus } from 'lucide-react';
+import { PackageCheck, Search, ShoppingCart, Store } from 'lucide-react';
 import './Dashboard.css';
 
 const money = (value) => `${Number(value || 0).toLocaleString()} RWF`;
-const demoProducts = [
+const exampleProducts = [
   { id: 'b1', name: 'Fresh tomatoes', category: 'Vegetables', pricePerKg: 800, quantityAvailable: 180, unit: 'kg', district: 'Kigali', farmerName: 'Jean Claude', image: '/images/page 1.jpg', rating: '4.9' },
   { id: 'b2', name: 'Irish potatoes', category: 'Vegetables', pricePerKg: 700, quantityAvailable: 320, unit: 'kg', district: 'Musanze', farmerName: 'Marie Uwase', image: '/images/page 2.jpg', rating: '4.8' },
   { id: 'b3', name: 'Sweet bananas', category: 'Fruits', pricePerKg: 1200, quantityAvailable: 95, unit: 'kg', district: 'Huye', farmerName: 'Eric Niyonzima', image: '/images/page 3.jpg', rating: '4.9' },
   { id: 'b4', name: 'Green peppers', category: 'Vegetables', pricePerKg: 1500, quantityAvailable: 70, unit: 'kg', district: 'Rwamagana', farmerName: 'Aline Mukamana', image: '/images/page 4.jpg', rating: '4.7' },
 ];
 
-export default function BuyerDashboard({ user, listings = [], cartItems = [], onBrowseMarket, onAddToCart, onOpenCart, onLogout }) {
-  const [dashboard, setDashboard] = useState(null);
+export default function BuyerDashboard({ user, listings = [], cartItems = [], onBrowseMarket, onAddToCart, onOpenCart }) {
+  const [orders, setOrders] = useState([]);
   const [section, setSection] = useState('Overview');
   const [query, setQuery] = useState('');
-  useEffect(() => { apiFetch('/api/buyer/dashboard').then((r) => r.ok ? r.json() : null).then(setDashboard).catch(() => {}); }, []);
-  const orders = dashboard?.orders || [];
-  const products = listings.length ? listings.slice(0, 8) : demoProducts;
-  const filtered = products.filter((p) => (p.name || p.title || '').toLowerCase().includes(query.toLowerCase()));
-  const nav = [{ label: 'Overview', icon: LayoutDashboard }, { label: 'Browse products', icon: Store }, { label: 'My orders', icon: PackageCheck }];
-  return <div className="dash-shell">
-    <aside className="dash-sidebar"><a className="dash-brand" href="#" onClick={(e) => e.preventDefault()}><span className="dash-brand-mark"><Sprout size={21}/></span><span>Isoko<span className="dash-brand-light">Link</span><small>RWANDA AGRI MARKET</small></span></a><p className="dash-nav-caption">WORKSPACE</p><nav>{nav.map(({label, icon: Icon}) => <button key={label} className={`dash-nav-item ${section === label ? 'active' : ''}`} onClick={() => setSection(label)}><Icon size={18}/>{label}{label === 'My orders' && orders.length > 0 && <span className="dash-nav-count">{orders.length}</span>}</button>)}</nav><p className="dash-nav-caption dash-nav-caption-spaced">PREFERENCES</p><button className="dash-nav-item" onClick={() => setSection('Settings')}><Settings size={18}/>Settings</button><button className="dash-nav-item"><CircleHelp size={18}/>Help center</button><div className="dash-sidebar-bottom"><div className="dash-plan"><span className="dash-plan-icon"><Leaf size={16}/></span><strong>Good food, closer</strong><p>Discover fresh produce from farmers across Rwanda.</p><button onClick={() => setSection('Browse products')}>Find fresh produce →</button></div><button className="dash-nav-item" onClick={onLogout}><LogOut size={18}/>Sign out</button></div></aside>
-    <main className="dash-main"><header className="dash-topbar"><div className="dash-breadcrumb">Workspace <span>/</span> <strong>{section}</strong></div><div className="dash-top-actions"><label className="dash-search"><Search size={16}/><input value={query} onChange={(e) => setQuery(e.target.value)} aria-label="Search produce" placeholder="Search fresh produce..."/></label><button className="dash-icon-button dash-cart-button" aria-label="Open cart" onClick={onOpenCart}><ShoppingCart size={18}/>{cartItems.length > 0 && <i>{cartItems.reduce((n, item) => n + (item.quantity || 1), 0)}</i>}</button><button className="dash-icon-button" aria-label="Notifications"><Bell size={18}/></button><button className="dash-user"><span className="dash-avatar buyer">{(user?.fullName || 'B').charAt(0).toUpperCase()}</span><span><strong>{user?.fullName || 'Buyer'}</strong><small>{user?.organization || 'Buyer account'}</small></span><ChevronDown size={15}/></button></div></header>
-      <div className="dash-content"><div className="dash-welcome"><div><p className="dash-eyebrow">WEDNESDAY, NOVEMBER 12, 2026</p><h1>{section === 'Overview' ? `Welcome back, ${(user?.fullName || 'Alex').split(' ')[0]} 👋` : section}</h1><p>Find the freshest produce from trusted farmers across Rwanda.</p></div><button className="dash-primary" onClick={onBrowseMarket}><Store size={17}/> Open marketplace</button></div>
-        {section === 'Overview' && <><div className="dash-stats"><article className="dash-stat"><span className="dash-stat-icon green"><ShoppingBag size={18}/></span><span className="dash-stat-label">Total orders</span><strong>{dashboard?.orderCount ?? 12}</strong><small><b>+3</b> this month</small></article><article className="dash-stat"><span className="dash-stat-icon amber"><PackageCheck size={18}/></span><span className="dash-stat-label">In progress</span><strong>{orders.filter((o) => !['delivered','complete'].includes((o.status || '').toLowerCase())).length || 2}</strong><small>Orders being prepared</small></article><article className="dash-stat"><span className="dash-stat-icon blue"><ShoppingCart size={18}/></span><span className="dash-stat-label">Items in cart</span><strong>{cartItems.reduce((n, item) => n + (item.quantity || 1), 0)}</strong><small>Ready when you are</small></article><article className="dash-stat"><span className="dash-stat-icon violet"><Sprout size={18}/></span><span className="dash-stat-label">Favorite farmers</span><strong>8</strong><small>Across 5 districts</small></article></div>
-          <section className="dash-panel"><div className="dash-panel-head"><div><h2>Fresh from the farm</h2><p>Popular produce available from farmers near you.</p></div><button className="dash-text-button" onClick={() => setSection('Browse products')}>Browse all <span>→</span></button></div><div className="dash-product-grid buyer-products">{filtered.slice(0,4).map((p) => <article className="dash-product-card" key={p.id}><div className="buyer-product-image"><img src={p.image || '/images/page 1.jpg'} alt={p.name || p.title}/><span className="buyer-rating">★ {p.rating || '4.8'}</span></div><div><span className="buyer-category">{p.category || 'Fresh produce'} · {p.district || p.location || 'Rwanda'}</span><h3>{p.name || p.title}</h3><p>By {p.farmerName || p.farmer || 'Local farmer'}</p><div className="buyer-product-bottom"><strong>{money(p.pricePerKg || p.price)}<small> / kg</small></strong><button aria-label={`Add ${p.name || p.title} to cart`} onClick={() => onAddToCart?.(p)}><Plus size={17}/></button></div></div></article>)}</div></section>
-          <section className="dash-panel"><div className="dash-panel-head"><div><h2>Recent orders</h2><p>Track your latest purchases and delivery updates.</p></div><button className="dash-text-button" onClick={() => setSection('My orders')}>View all orders <span>→</span></button></div>{orders.length ? <div className="dash-table-wrap"><table className="dash-table"><thead><tr><th>ORDER</th><th>PRODUCT</th><th>QUANTITY</th><th>TOTAL</th><th>STATUS</th></tr></thead><tbody>{orders.slice(0,3).map((o) => <tr key={o.id}><td className="dash-order-id">#{o.id}</td><td>{o.productName}</td><td>{o.quantityKg} kg</td><td className="dash-money">{money(o.totalAmount)}</td><td><span className="dash-status processing">{o.status || 'Processing'}</span></td></tr>)}</tbody></table></div> : <div className="buyer-order-empty"><PackageCheck size={20}/><span>Your next great meal starts with fresh produce. <button onClick={() => setSection('Browse products')}>Explore produce →</button></span></div>}</section>
-        </>}
-        {section === 'Browse products' && <section className="dash-panel"><div className="dash-panel-head"><div><h2>Available produce</h2><p>Fresh harvests listed by farmers across Rwanda.</p></div></div><div className="dash-product-grid buyer-products">{filtered.map((p) => <article className="dash-product-card" key={p.id}><div className="buyer-product-image"><img src={p.image || '/images/page 1.jpg'} alt={p.name || p.title}/><span className="buyer-rating">★ {p.rating || '4.8'}</span></div><div><span className="buyer-category">{p.category || 'Fresh produce'} · {p.district || p.location || 'Rwanda'}</span><h3>{p.name || p.title}</h3><p>{p.quantityAvailable || p.quantity || 0} {p.unit || 'kg'} available</p><div className="buyer-product-bottom"><strong>{money(p.pricePerKg || p.price)}<small> / kg</small></strong><button aria-label={`Add ${p.name || p.title} to cart`} onClick={() => onAddToCart?.(p)}><Plus size={17}/></button></div></div></article>)}</div>{filtered.length === 0 && <p className="dash-empty">No produce matches “{query}”.</p>}</section>}
-        {section === 'My orders' && <section className="dash-panel"><div className="dash-panel-head"><div><h2>Your orders</h2><p>Order history and fulfillment updates.</p></div></div>{orders.length ? <div className="dash-table-wrap"><table className="dash-table"><thead><tr><th>ORDER</th><th>PRODUCT</th><th>QUANTITY</th><th>TOTAL</th><th>STATUS</th></tr></thead><tbody>{orders.map((o) => <tr key={o.id}><td className="dash-order-id">#{o.id}</td><td>{o.productName}</td><td>{o.quantityKg} kg</td><td className="dash-money">{money(o.totalAmount)}</td><td><span className="dash-status processing">{o.status || 'Processing'}</span></td></tr>)}</tbody></table></div> : <div className="buyer-order-empty"><PackageCheck size={20}/><span>No orders yet. <button onClick={() => setSection('Browse products')}>Browse fresh produce →</button></span></div>}</section>}
-        {section === 'Settings' && <section className="dash-panel"><h2>Account settings</h2><p className="dash-section-hint">Manage your buyer profile and preferences from account management.</p><button className="dash-primary" onClick={onBrowseMarket}>Return to marketplace</button></section>}
-        <footer className="dash-footer">© 2026 IsokoLink Rwanda <span>Fresh from Rwanda <Sprout size={14}/></span></footer>
-      </div>
-    </main>
+  useEffect(() => {
+    apiFetch('/api/buyer/dashboard').then((response) => response.ok ? response.json() : null)
+      .then((data) => setOrders(data?.orders || [])).catch(() => {});
+  }, []);
+
+  const products = (listings.length ? listings : exampleProducts).filter((product) =>
+    (product.name || product.title || '').toLowerCase().includes(query.trim().toLowerCase())
+  );
+  const itemCount = cartItems.reduce((total, item) => total + (item.quantity || 1), 0);
+  const sections = ['Overview', 'Browse products', 'My orders'];
+
+  return <div className="buyer-page page-gutter">
+    <div className="buyer-page-inner">
+      <header className="buyer-page-heading">
+        <div><p className="buyer-page-eyebrow">ISOKOLINK · BUYER</p><h1>{section === 'Overview' ? `Welcome, ${(user?.fullName || 'buyer').split(' ')[0]}` : section}</h1><p>Find local harvests and keep an eye on your orders.</p></div>
+        <div className="buyer-page-actions"><button type="button" onClick={onOpenCart} className="buyer-secondary-button"><ShoppingCart size={16}/> Basket <span>{itemCount}</span></button><button type="button" onClick={onBrowseMarket} className="buyer-primary-button"><Store size={16}/> Open marketplace</button></div>
+      </header>
+
+      <nav className="buyer-page-tabs" aria-label="Buyer pages">{sections.map((item) => <button key={item} type="button" className={section === item ? 'active' : ''} onClick={() => setSection(item)}>{item}</button>)}</nav>
+
+      {section === 'Overview' && <>
+        <div className="buyer-quick-stats"><article><span>Orders placed</span><strong>{orders.length}</strong></article><article><span>Items in basket</span><strong>{itemCount}</strong></article></div>
+        <section className="buyer-page-section"><div className="buyer-section-heading"><div><h2>Fresh from nearby farms</h2><p>Harvests listed by farmers and cooperatives.</p></div><button type="button" onClick={() => setSection('Browse products')}>Browse all</button></div><ProductGrid products={products.slice(0, 4)} onAddToCart={onAddToCart}/></section>
+        <section className="buyer-page-section"><div className="buyer-section-heading"><div><h2>Recent orders</h2><p>Check the status of your latest requests.</p></div><button type="button" onClick={() => setSection('My orders')}>View orders</button></div><OrderList orders={orders.slice(0, 3)}/></section>
+      </>}
+
+      {section === 'Browse products' && <section className="buyer-page-section"><label className="buyer-search"><Search size={17}/><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search produce" aria-label="Search produce"/></label><ProductGrid products={products} onAddToCart={onAddToCart}/>{products.length === 0 && <p className="dash-empty">No produce matches “{query}”.</p>}</section>}
+
+      {section === 'My orders' && <section className="buyer-page-section"><div className="buyer-section-heading"><div><h2>Your orders</h2><p>Order history and fulfillment updates.</p></div></div><OrderList orders={orders}/></section>}
+    </div>
   </div>;
+}
+
+function ProductGrid({ products, onAddToCart }) {
+  if (!products.length) return <div className="buyer-empty"><Store size={22}/><p>No listings are available yet.</p></div>;
+  return <div className="dash-product-grid buyer-products buyer-page-products">{products.map((product) => <article className="dash-product-card" key={product.id}>
+    <div className="buyer-product-image"><img src={product.image || '/images/page 1.jpg'} alt={product.name || product.title}/><span className="buyer-rating">★ {product.rating || '4.8'}</span></div>
+    <div><span className="buyer-category">{product.category || 'Fresh produce'} · {product.district || product.location || 'Rwanda'}</span><h3>{product.name || product.title}</h3><p>By {product.farmerName || product.farmer || product.cooperative || 'Local farmer'}</p><div className="buyer-product-bottom"><strong>{money(product.pricePerKg || product.price)}<small> / kg</small></strong><button type="button" aria-label={`Add ${product.name || product.title} to basket`} onClick={() => onAddToCart?.(product)}>+</button></div></div>
+  </article>)}</div>;
+}
+
+function OrderList({ orders }) {
+  if (!orders.length) return <div className="buyer-empty"><PackageCheck size={22}/><p>You don’t have any orders yet.</p></div>;
+  return <div className="dash-table-wrap"><table className="dash-table"><thead><tr><th>ORDER</th><th>PRODUCT</th><th>QUANTITY</th><th>TOTAL</th><th>STATUS</th></tr></thead><tbody>{orders.map((order) => <tr key={order.id}><td className="dash-order-id">#{order.id}</td><td>{order.productName || order.name}</td><td>{order.quantityKg || order.quantity || 0} kg</td><td className="dash-money">{money(order.totalAmount ?? order.total)}</td><td><span className="dash-status processing">{order.status || 'Processing'}</span></td></tr>)}</tbody></table></div>;
 }

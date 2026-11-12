@@ -14,10 +14,7 @@ export default function BookAgencyModal({ isOpen, onClose, agency, onConfirmBook
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!farmerName || !farmerPhone) {
-      alert('Please fill out your contact details.');
-      return;
-    }
+    if (!farmerName.trim() || !farmerPhone.trim()) return;
 
     onConfirmBooking({
       agencyId: agency.id,

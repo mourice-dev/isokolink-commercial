@@ -40,7 +40,7 @@ export default function CartDrawer({
 
   return (
     <div className="cart-drawer-overlay" onClick={onClose}>
-      <div className="cart-drawer" role="dialog" aria-modal="true" aria-labelledby="cart-title" onClick={(e) => e.stopPropagation()}>
+      <div className="cart-drawer" role="region" aria-labelledby="cart-title" onClick={(e) => e.stopPropagation()}>
         <div className="cart-header">
           <div className="cart-heading">
             <span className="cart-heading-icon"><ShoppingBag size={20} /></span>
