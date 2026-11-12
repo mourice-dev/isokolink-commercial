@@ -293,16 +293,18 @@ export default function App() {
         Removed completely as requested by the user to prevent chaos.
       */}
 
-      {/* Perfectly aligned Farmiq Navbar matching the image */}
-      <FarmiqNavbar
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
-        onOpenSellModal={handleOpenSell}
-        cartCount={cartItems.reduce((acc, curr) => acc + (curr.quantity || 1), 0)}
-        onOpenCart={() => setIsCartOpen(true)}
-        user={authUser}
-        onLogout={handleLogout}
-      />
+      {/* Dashboards provide their own navigation, so keep the public navbar off them. */}
+      {!['farmer-dashboard', 'buyer-dashboard'].includes(activeTab) && (
+        <FarmiqNavbar
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+          onOpenSellModal={handleOpenSell}
+          cartCount={cartItems.reduce((acc, curr) => acc + (curr.quantity || 1), 0)}
+          onOpenCart={() => setIsCartOpen(true)}
+          user={authUser}
+          onLogout={handleLogout}
+        />
+      )}
 
       <main className="flex-1">
         {(activeTab === 'login' || activeTab === 'register') && authLoading && <div className="grid min-h-[65vh] place-items-center bg-[#f7f8f4] text-sm text-black/55">Checking your secure session…</div>}
@@ -455,7 +457,7 @@ export default function App() {
 
       {/* Toast Notification */}
       {toastMessage && (
-        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-3 rounded-xl border-l-4 border-[#9eb65b] bg-[#17291e] px-5 py-3 text-white shadow-2xl">
+        <div className="app-toast" role="status">
           <span className="text-sm font-semibold">{toastMessage}</span>
         </div>
       )}

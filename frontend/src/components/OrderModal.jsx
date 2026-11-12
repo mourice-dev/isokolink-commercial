@@ -51,7 +51,7 @@ export default function OrderModal({ isOpen, onClose, produce, onSubmitOrder }) 
 
   return (
     <div className="fixed inset-0 z-[100] flex items-end justify-center overflow-y-auto bg-[#07150d]/70 p-0 backdrop-blur-sm sm:items-center sm:p-5" onClick={onClose}>
-      <section role="dialog" aria-modal="true" aria-labelledby="bulk-order-title" className="my-auto max-h-[96dvh] w-full max-w-2xl overflow-y-auto rounded-t-3xl bg-[#f8faf5] text-[#17291e] shadow-2xl sm:rounded-3xl" onClick={(event) => event.stopPropagation()}>
+      <section role="region" aria-labelledby="bulk-order-title" className="my-auto max-h-[96dvh] w-full max-w-2xl overflow-y-auto rounded-t-3xl bg-[#f8faf5] text-[#17291e] shadow-2xl sm:rounded-3xl" onClick={(event) => event.stopPropagation()}>
         <header className="sticky top-0 z-10 flex items-start justify-between gap-4 border-b border-white/10 bg-[#17291e] px-5 py-5 text-white sm:px-7">
           <div>
             <p className="inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-[#c2d19e]"><ShoppingBag size={14} /> Secure order request</p>

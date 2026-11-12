@@ -20,20 +20,20 @@
   --font-system: "Söhne", "Sohne", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   
   /* IsokoLink palette */
-  --color-olive: #6B8E23;
-  --color-olive-dark: #556B2F;
+  --color-olive: #70804d;
+  --color-olive-dark: #536347;
   --color-forest-green: #228B22;
   --color-black: #000000;
   --color-white: #ffffff;
-  --color-forest-900: #051d11;
-  --color-forest-800: #072618;
-  --color-forest-700: #0a3721;
-  --color-forest-600: #0e4c2e;
+  --color-forest-900: #25372c;
+  --color-forest-800: #304538;
+  --color-forest-700: #405746;
+  --color-forest-600: #526b55;
   --color-emerald-500: #10805c;
   --color-emerald-400: #15803d;
   --color-mint-light: #d1fae5;
   --color-mint-sage: #c7eed8;
-  --color-cream: #faf7f0;
+  --color-cream: #f5f1e7;
   
   /* Caution colors harmonious with greens */
   --color-caution-bg: #fefce8;
@@ -43,13 +43,101 @@
 
 body {
   font-family: var(--font-system);
-  background-color: #0a3721;
-  color: #ffffff;
+  background-color: #f5f1e7;
+  color: #30372f;
   margin: 0;
   padding: 0;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+
+/* A calmer, more familiar visual language across the marketplace and dashboards. */
+#root > .min-h-screen {
+  background: #f5f1e7 !important;
+  color: #30372f !important;
+}
+
+#root *:not(svg):not(path) {
+  border-radius: 5px !important;
+  background-image: none !important;
+  backdrop-filter: none !important;
+}
+
+#root header.sticky {
+  background-color: #35483b !important;
+}
+
+#root .dash-shell {
+  --ink: #30372f;
+  --muted: #77776d;
+  --line: #e2ddcf;
+  --green: #65754a;
+  background: #f5f1e7;
+  color: #30372f;
+  min-height: 100vh;
+}
+
+#root .dash-sidebar { height: 100vh; }
+
+#root .dash-sidebar,
+#root .dash-topbar,
+#root .dash-stat,
+#root .dash-panel,
+#root .dash-product-card {
+  border-color: #e2ddcf;
+  background-color: #fffdf8;
+}
+
+#root .dash-nav-item.active,
+#root .dash-plan,
+#root .buyer-product-bottom button {
+  background-color: #ecebdd;
+  color: #536347;
+}
+
+/* Dialogs and drawers now sit in the page flow instead of covering the page. */
+#root > .min-h-screen > .harvest-overlay,
+#root > .min-h-screen > .cart-drawer-overlay,
+#root > .min-h-screen > .modal-overlay,
+#root > .min-h-screen > .fixed.inset-0 {
+  position: relative !important;
+  inset: auto !important;
+  z-index: 1 !important;
+  order: 0;
+  display: block !important;
+  overflow: visible !important;
+  padding: 18px clamp(16px, 5vw, 56px) !important;
+  background: transparent !important;
+}
+
+#root > .min-h-screen > main { order: 1; }
+#root > .min-h-screen > .app-toast {
+  position: static;
+  order: 2;
+  margin: 0 clamp(16px, 5vw, 56px) 14px;
+  padding: 12px 16px;
+  border-left: 3px solid #87976a;
+  background: #e9e7d9;
+  color: #394235;
+  box-shadow: none;
+}
+#root > .min-h-screen > footer { order: 3; }
+#root > .min-h-screen > .cart-drawer-overlay { justify-content: stretch; }
+#root .modal-content { width: min(100%, 760px); margin: 0 auto; background: #fffdf8; box-shadow: 0 3px 14px rgba(55, 54, 42, .08); }
+#root .harvest-modal,
+#root .cart-drawer,
+#root > .min-h-screen > .fixed.inset-0 > section {
+  width: min(100%, 920px) !important;
+  height: auto !important;
+  max-height: none !important;
+  margin: 0 auto !important;
+  border: 1px solid #e2ddcf;
+  background-color: #fffdf8 !important;
+  box-shadow: 0 3px 14px rgba(55, 54, 42, .08) !important;
+}
+
+#root .cart-drawer { min-height: 0; }
+#root .cart-items-list { max-height: 50vh; }
 
 
 h1, h2, h3, h4, h5, h6, p, span, button, input, textarea, select {
