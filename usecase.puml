@@ -1,0 +1,95 @@
+@startuml
+left to right direction
+skinparam packageStyle rectangle
+
+actor Visitor
+actor Farmer
+actor Buyer
+actor Admin
+
+Buyer --|> Visitor
+Farmer --|> Visitor
+
+rectangle "Rwandan Agri-Marketplace" {
+
+  package "Account" {
+    usecase "Register" as UC1
+    usecase "Login / Logout" as UC2
+    usecase "Manage Profile" as UC3
+  }
+
+  package "Marketplace" {
+    usecase "Browse / Search Produce" as UC4
+    usecase "View Market Ticker" as UC5
+    usecase "List Produce" as UC6
+    usecase "Update / Delete Listing" as UC7
+    usecase "Place Order" as UC8
+    usecase "Choose Delivery & Payment" as UC9
+    usecase "Track Order" as UC10
+    usecase "Manage Incoming Orders" as UC11
+  }
+
+  package "Crop Health" {
+    usecase "Diagnose Crop Disease" as UC12
+    usecase "Browse Prevention Products" as UC13
+    usecase "Find Farming Agencies" as UC14
+  }
+
+  package "Community" {
+    usecase "Create Post" as UC15
+    usecase "Comment on Post" as UC16
+    usecase "Like Post" as UC17
+    usecase "Send Direct Message" as UC18
+  }
+
+  package "Support" {
+    usecase "Send Contact Message" as UC19
+  }
+
+  package "Administration" {
+    usecase "Manage Users" as UC20
+    usecase "Moderate Listings & Posts" as UC21
+    usecase "Manage All Orders" as UC22
+    usecase "View Contact Messages" as UC23
+  }
+}
+
+Visitor --> UC1
+Visitor --> UC4
+Visitor --> UC5
+Visitor --> UC12
+Visitor --> UC13
+Visitor --> UC14
+Visitor --> UC19
+
+Farmer --> UC2
+Farmer --> UC3
+Farmer --> UC6
+Farmer --> UC7
+Farmer --> UC11
+Farmer --> UC15
+Farmer --> UC16
+Farmer --> UC17
+Farmer --> UC18
+
+Buyer --> UC2
+Buyer --> UC3
+Buyer --> UC8
+Buyer --> UC10
+Buyer --> UC15
+Buyer --> UC16
+Buyer --> UC17
+Buyer --> UC18
+
+Admin --> UC2
+Admin --> UC20
+Admin --> UC21
+Admin --> UC22
+Admin --> UC23
+
+UC8 .> UC2 : <<include>>
+UC8 .> UC9 : <<include>>
+UC6 .> UC2 : <<include>>
+UC15 .> UC2 : <<include>>
+UC12 .> UC13 : <<extend>>
+@enduml
