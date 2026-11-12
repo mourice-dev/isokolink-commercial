@@ -390,8 +390,8 @@ export default function App() {
           </div>
         )}
 
-        {activeTab === 'farmer-dashboard' && authUser?.role === 'farmer' && <div className="page-gutter min-h-[75vh] bg-[#f7f8f4] py-8"><FarmerDashboard listings={produceListings} profile={{ ...authUser, ...(authUser.details || {}) }} onBrowseMarket={() => setActiveTab('market')} onAddProduce={handleOpenSell} /></div>}
-        {activeTab === 'buyer-dashboard' && authUser?.role === 'buyer' && <div className="page-gutter min-h-[75vh] bg-[#f7f8f4] py-8"><BuyerDashboard user={{ ...authUser, ...(authUser.details || {}) }} onBrowseMarket={() => setActiveTab('market')} /></div>}
+        {activeTab === 'farmer-dashboard' && authUser?.role === 'farmer' && <FarmerDashboard listings={produceListings} profile={{ ...authUser, ...(authUser.details || {}) }} onBrowseMarket={() => setActiveTab('market')} onAddProduce={handleOpenSell} onLogout={handleLogout} />}
+        {activeTab === 'buyer-dashboard' && authUser?.role === 'buyer' && <BuyerDashboard user={{ ...authUser, ...(authUser.details || {}) }} listings={produceListings} cartItems={cartItems} onBrowseMarket={() => setActiveTab('market')} onAddToCart={handleAddToCart} onOpenCart={() => setIsCartOpen(true)} onLogout={handleLogout} />}
 
         {activeTab === 'product-details' && <div className="page-gutter min-h-[75vh] bg-[#f7f8f4] py-4"><ProductDetails product={currentProduct} onBack={() => goBack('market')} onBuy={handleBuySelectedProduce} /></div>}
 

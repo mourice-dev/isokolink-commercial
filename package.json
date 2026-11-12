@@ -17,16 +17,12 @@
   "main": "frontend/vite.config.js",
   "scripts": {
     "dev": "vite --config frontend/vite.config.js frontend",
-    "dev:api": "node backend/index.js",
     "build": "vite --config frontend/vite.config.js build frontend --outDir ../dist",
     "lint": "oxlint",
     "preview": "vite preview --config frontend/vite.config.js frontend"
   },
   "dependencies": {
-    "dotenv": "^18.0.9",
-    "express": "^5.3.0",
     "lucide-react": "^1.58.0",
-    "pg": "^8.23.1",
     "react": "^19.2.8",
     "react-dom": "^19.2.8"
   },
