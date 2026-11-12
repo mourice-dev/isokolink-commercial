@@ -22,7 +22,7 @@
     "preview": "vite preview --config frontend/vite.config.js frontend"
   },
   "dependencies": {
-    "lucide-react": "^1.58.0",
+    "lucide-react": "^1.70.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8"
   },
